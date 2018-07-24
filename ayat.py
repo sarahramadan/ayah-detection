@@ -47,7 +47,7 @@ def find_ayat(img_gray, template):
    w, h = template.shape[::-1]
 
    res = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
-   threshold = 0.5
+   threshold = 0.42
    loc = np.where( res >= threshold)
 
    points = zip(*loc[::-1])
@@ -118,7 +118,7 @@ def find_ayat(img_gray, template):
 def draw(img_rgb, template, ayat, output):
    w, h = template.shape[::-1]
    for pt in ayat:
-      cv2.rectangle(img_rgb, pt, (pt[0] + w, pt[1] + h), (0,0,255), 2)
+      cv2.rectangle(img_rgb, pt, (pt[0] + w, pt[1] + h), (0,0,255,255), 2)
    cv2.imwrite(output, img_rgb)
 
 if __name__ == "__main__":

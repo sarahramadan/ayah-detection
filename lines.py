@@ -1,4 +1,5 @@
 import sys
+import math
 from PIL import Image, ImageDraw
 
 """
@@ -96,6 +97,90 @@ def find_lines(image, line_height, max_pixels, mode):
                   last_x = x
                break
       lines.append(((first_x, yrange[0]), (last_x, yrange[1])))
+   return lines
+
+def find_lines2(image, lines_count):
+   range_end = -1
+   range_start = -1   
+
+   data = image.getdata()
+   width, height = image.size
+   range_start = 0
+   range_end = height - 1
+   lines = []
+   '''
+   for y in range(0, height):
+      filled_pixels = 0
+      for x in range(0, width):
+         pt = data[y * width + x]
+         if is_not_blank(pt):
+            filled_pixels = filled_pixels + 1      
+      if filled_pixels > 0:
+	range_start = y
+	break
+   for y in range(height -1, -1, -1):
+      filled_pixels = 0
+      for x in range(0, width):
+         pt = data[y * width + x]
+         if is_not_blank(pt):
+            filled_pixels = filled_pixels + 1      
+      if filled_pixels > 0:
+	range_end = y
+	break
+   '''
+   line_height = (range_end - range_start + 1.0)/lines_count;
+   
+   for i in range (0, lines_count):
+	lines.append(((0, math.floor(range_start + i * line_height)), (width, math.floor(range_start + i * line_height + line_height))))
+
+   
+   return lines
+
+def find_lines3(image):
+   range_end = -1
+   range_start = -1   
+
+   data = image.getdata()
+   width, height = image.size
+   range_start = 0
+   range_end = height - 1
+   lines = []
+   
+   for y in range(0, height):
+      filled_pixels = 0
+      for x in range(0, width):
+         pt = data[y * width + x]
+         if is_not_blank(pt):
+            filled_pixels = filled_pixels + 1      
+      if filled_pixels > 0:
+	range_start = y
+	break
+   for y in range(height -1, -1, -1):
+      filled_pixels = 0
+      for x in range(0, width):
+         pt = data[y * width + x]
+         if is_not_blank(pt):
+            filled_pixels = filled_pixels + 1      
+      if filled_pixels > 0:
+	range_end = y
+	break
+   
+   top = 0
+   bottom = 0
+   for y in range(range_start, range_end + 1):
+      filled_pixels = 0
+      for x in range(0, width):
+         pt = data[y * width + x]
+         if is_not_blank(pt):
+            filled_pixels = filled_pixels + 1      
+      if filled_pixels == 0:
+         bottom = y
+      elif bottom > top:
+         lines.append(((0, top), (width, bottom)))
+         top = y
+
+   bottom = height - 1
+   lines.append(((0, top), (width, bottom)))
    return lines
 
 # for debugging, this method draws boxes around each line
