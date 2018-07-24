@@ -1,9 +1,10 @@
 import sys
+import glob
 from PIL import Image
-for i in range(1,605):
-   image_dir = sys.argv[1] + '/'
-   #filename = "001_Page_"+str(i).zfill(2) + '.jpg'
-   filename = str(i) + '.png'   
-   # find lines
-   image = Image.open(image_dir + filename).convert('RGBA')
-   image.save(image_dir + filename,"PNG");
+image_dir = sys.argv[1]
+print("Fixing color mode for PNG images in " + image_dir + "...")
+for file_name in glob.glob(image_dir + "/*.png"):
+  print(file_name)
+  image = Image.open(file_name).convert('RGBA')
+  image.save(file_name, "PNG");
+print("Done fixing color mode for PNG images in " + image_dir)
