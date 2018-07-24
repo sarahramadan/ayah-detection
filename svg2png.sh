@@ -1,25 +1,40 @@
 #!/bin/bash
+set -e
+
 if [ "$#" -ne 4 ]; then
-  echo "Usage: $0 IMAGE_WIDTH IMAGE_PADDING INPUT_FOLDER OUTPUT_FOLDER" >&2
+  echo "Usage: $0 <IMAGE_WIDTH> <IMAGE_PADDING> <INPUT_FOLDER> <OUTPUT_FOLDER>" >&2
   exit 1
 fi
 
-find $3/*.svg -exec sed -i -z  's/<path\s*clip[^<]*\/>//g' {} +
-find $3/*.svg -exec sed -i -z  's/<polygon\s*clip[^<]*\/>//g' {} +
-rm -fr $4/$1
-mkdir $4/$1
-
-fileName=1
-for i in $(seq -f "%03g" 1 604)
-do
-	inkscape -z -e $4/$1/$fileName.png -w $1  --export-area-drawing $3/$i.svg
-	fileName=$((fileName + 1))	
-done
-
+image_width=$1
 padding=$2
+input_folder=$3
+output_folder=$4/$image_width
 
-cd $4/$1
+find $input_folder/*.svg -exec sed -i -z 's/<path\s*clip[^<]*\/>//g' {} +
+find $input_folder/*.svg -exec sed -i -z 's/<polygon\s*clip[^<]*\/>//g' {} +
+rm -fr $output_folder
+mkdir -p $output_folder
+
+echo "Converting files from SVG to PNG..."
+shopt -s extglob # to enable bash string manipulation for ${001##+(0)} below to work
+for input_file in $input_folder/*.svg
+do
+  # generate output file name from the input file name
+  output_file=`basename $input_file .svg`
+  # remove leading zeros from the output file name
+  output_file=${output_file##+(0)}
+	inkscape -z -e $output_folder/$output_file.png -w $image_width --export-area-drawing $input_file
+done
+shopt -u extglob # disable again
+echo "Done converting files from SVG to PNG"
+
+echo "Adjusting padding for PNG files..."
+cd $output_folder
 mogrify -bordercolor transparent -border 0x$(($padding/2)) -background transparent *.png
+
+# continue even if any command below fails, some files may not be there
+set +e
 
 mogrify -bordercolor transparent -border 0x$(($padding)) -background transparent -extent -0-$(($padding/2)) 1.png
 mogrify -bordercolor transparent -border 0x$(($padding)) -background transparent -extent -0-$(($padding/2)) 2.png
@@ -100,3 +115,5 @@ mogrify -bordercolor transparent -border 0x$(($padding/2)) -background transpare
 mogrify -bordercolor transparent -border 0x$(($padding/2)) -background transparent -extent -0-$(($padding/2)) 602.png
 mogrify -bordercolor transparent -border 0x$(($padding/2)) -background transparent -extent -0-$(($padding/2)) 603.png
 mogrify -bordercolor transparent -border 0x$(($padding/2)) -background transparent -extent -0-$(($padding/2)) 604.png
+
+echo "Done adjusting padding for PNG files..."
