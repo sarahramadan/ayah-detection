@@ -44,7 +44,8 @@ def process(ayat):
    return result
 
 def find_ayat(img_gray, template):
-   w, h = template.shape[::-1]
+   w = template.shape[1]
+   h = template.shape[0]
 
    res = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
    threshold = 0.42
@@ -115,11 +116,25 @@ def find_ayat(img_gray, template):
      ayat.append((e_x_avg, e_y_avg))
    return process(ayat)
 
-def draw(img_rgb, template, ayat, output):
-   w, h = template.shape[::-1]
+def draw(img_rgb, template, ayat, output = None):
+   w = template.shape[1]
+   h = template.shape[0]
    for pt in ayat:
       cv2.rectangle(img_rgb, pt, (pt[0] + w, pt[1] + h), (0,0,255,255), 2)
-   cv2.imwrite(output, img_rgb)
+   if output is not None:
+      cv2.imwrite(output, img_rgb)
+
+def output_aya_segment(vals, image):
+  print 'insert into glyphs values(NULL, %d, %d, %d, %d, %d, %d, %d, %d, %d);' % vals
+  # schema: id, pageId, lineId, suraId, verseId, indexId, left, right, top, bottom
+  top_left = (int(vals[5]), int(vals[7]))
+  bottom_right = (int(vals[6]), int(vals[8]))
+  color = (255, 0, 0, 255)
+  cv2.rectangle(image, top_left, bottom_right, color, 1)
+  # TODO
+  # 1- color each aya with a different color
+  # 2- fill in segments (draw text at the end)
+  # 3- write aya and segment number on each segment
 
 if __name__ == "__main__":
    if len(sys.argv) < 3:

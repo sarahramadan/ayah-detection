@@ -12,6 +12,6 @@ RUN pip install -r requirements.txt
 
 COPY . /home
 
-#CMD ["python"]
-CMD ["./svg2png.sh", "800", "10", "./samples/svg", "./output/images"]
+# CMD ["./svg2png.sh", "800", "10", "./samples/svg", "./output/images"]
 # CMD ["python", "./fix_color_mode.py", "./output/images/800"]
+CMD ["python", "./main.py", "./output/images/800", "./separator1.png", "./separator2.png", "./output"]
