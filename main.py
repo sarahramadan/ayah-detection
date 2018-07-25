@@ -92,9 +92,6 @@ for i in range(1,605):
   ayat = find_ayat(img_gray, template)
   print 'found: %d ayat on page %d' % (len(ayat), i)
 
-  # draw aya separators
-  draw(img_gray, template, ayat)
-
   tpl_width = template.shape[1]
   tpl_height = template.shape[0]
 
@@ -168,6 +165,9 @@ for i in range(1,605):
               cur_line[0][1], cur_line[1][1])
         output_aya_segment(vals, img_gray)
 
+  # draw aya separators
+  draw(img_gray, template, ayat)
+
   # handle cases when the sura ends on a page, and there are no more
   # ayat. this could mean that we need to adjust lines_to_skip (as is
   # the case when the next sura header is at the bottom) or also add
@@ -210,4 +210,12 @@ for i in range(1,605):
         cur_line[0][1], cur_line[1][1])
       output_aya_segment(vals, img_gray)
 
-  cv2.imwrite(outFolder + "z" + str(i) + ".png", img_gray)
+  # done with detecting segments, now write using cv2
+  image_name = outFolder + "z" + str(i) + ".png"
+  cv2.imwrite(image_name, img_gray)
+
+  # now paste segmented to original
+  original = Image.open(image_dir + filename).convert('RGBA')
+  segmented = Image.open(image_name).convert('RGBA')
+  segmented.paste(original, mask=original)
+  segmented.save(image_name, "PNG")

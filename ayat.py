@@ -2,6 +2,7 @@ import cv2
 import sys
 import numpy as np
 from matplotlib import pyplot as plt
+from random import randint
 
 # heavily based on the "template matching" tutorial for opencv python
 
@@ -124,17 +125,19 @@ def draw(img_rgb, template, ayat, output = None):
    if output is not None:
       cv2.imwrite(output, img_rgb)
 
+aya_colors = [(randint(128, 255), randint(128, 255), randint(128, 255), 255)
+              for i in range(-1, 300)]
+font = cv2.FONT_HERSHEY_SIMPLEX
+
 def output_aya_segment(vals, image):
   print 'insert into glyphs values(NULL, %d, %d, %d, %d, %d, %d, %d, %d, %d);' % vals
   # schema: id, pageId, lineId, suraId, verseId, indexId, left, right, top, bottom
   top_left = (int(vals[5]), int(vals[7]))
   bottom_right = (int(vals[6]), int(vals[8]))
-  color = (255, 0, 0, 255)
-  cv2.rectangle(image, top_left, bottom_right, color, 1)
-  # TODO
-  # 1- color each aya with a different color
-  # 2- fill in segments (draw text at the end)
-  # 3- write aya and segment number on each segment
+  color = aya_colors[int(vals[3])]
+  cv2.rectangle(image, top_left, bottom_right, color, -1)
+  text = str(vals[3]) + ':' + str(vals[4])
+  cv2.putText(image, text, (0 + int(vals[5]), 20 + int(vals[7])), font, 0.6, (0, 0, 0, 255), 1, cv2.LINE_AA)
 
 if __name__ == "__main__":
    if len(sys.argv) < 3:
