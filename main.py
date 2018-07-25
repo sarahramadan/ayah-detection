@@ -119,13 +119,15 @@ for i in range(1,605):
       cur_line = lines[line]
       miny = cur_line[0][1]
       maxy = cur_line[1][1]
+      cur_line_minx = cur_line[0][0]
+      cur_line_maxx = cur_line[1][0]
       if lines_to_skip > 0:
         if lines_to_skip == 2: # header
-          vals = (i, line + 1, sura, -1, 1, cur_line[0][0], cur_line[1][0], cur_line[0][1], cur_line[1][1])
+          vals = (i, line + 1, sura, -1, 1, cur_line_minx, cur_line_maxx, miny, maxy)
         elif lines_to_skip == 1 and sura ==9: # header of tawba
-          vals = (i, line + 1, sura, -1, 1, cur_line[0][0], cur_line[1][0], cur_line[0][1], cur_line[1][1])
+          vals = (i, line + 1, sura, -1, 1, cur_line_minx, cur_line_maxx, miny, maxy)
         else: # basmala
-          vals = (i, line + 1, sura, 0, 1, cur_line[0][0], cur_line[1][0], cur_line[0][1], cur_line[1][1])
+          vals = (i, line + 1, sura, 0, 1, cur_line_minx, cur_line_maxx, miny, maxy)
         output_aya_segment(vals, img_gray)
         lines_to_skip = lines_to_skip - 1
         current_line = current_line + 1
@@ -133,19 +135,24 @@ for i in range(1,605):
       pos = pos + 1
       if y_pos <= maxy:
         # we found the line with the ayah
-        maxx = cur_line[1][0]
+        maxx = cur_line_maxx
         if x_pos_in_line > 0:
           maxx = x_pos_in_line
         minx = ayah_item[0]
         if minx < tpl_width/2: # small value indicating that the separator is the last thing comes in line
           minx = 0
-        vals = (i, line + 1, sura, ayah, pos, minx, maxx, miny, maxy)
-        output_aya_segment(vals, img_gray)
         end_of_sura = False
         if count_ayat[sura - 1] == ayah:
           end_of_sura = True
 
-        if end_of_sura or abs(minx - cur_line[0][0]) < tpl_width/2:
+        # last aya in sura segment must extend to the rightmost, the empty space is ugly
+        if end_of_sura:
+          minx = 0
+
+        vals = (i, line + 1, sura, ayah, pos, minx, maxx, miny, maxy)
+        output_aya_segment(vals, img_gray)
+
+        if end_of_sura or abs(minx - cur_line_minx) < tpl_width/2:
           x_pos_in_line = -1
           current_line = current_line + 1
           if current_line == num_lines:
@@ -156,13 +163,13 @@ for i in range(1,605):
         break
       else:
         # we add this line
-        maxx = cur_line[1][0]
+        maxx = cur_line_maxx
         if x_pos_in_line > 0:
           maxx = x_pos_in_line
         x_pos_in_line = -1
         current_line = current_line + 1
-        vals = (i, line + 1, sura, ayah, pos, cur_line[0][0], maxx,
-              cur_line[0][1], cur_line[1][1])
+        vals = (i, line + 1, sura, ayah, pos, cur_line_minx, maxx,
+              miny, maxy)
         output_aya_segment(vals, img_gray)
 
   # draw aya separators
@@ -199,16 +206,18 @@ for i in range(1,605):
       line = line + 1
     pos = 0
     ayah = ayah + 1
-    for l in range(line, num_lines):
-      cur_line = lines[l]
-      pos = pos + 1
-      maxx = cur_line[1][0]
-      if x_pos_in_line > 0:
-        maxx = x_pos_in_line
-        x_pos_in_line = -1
-      vals = (i, l + 1, sura, ayah, pos, cur_line[0][0], maxx,
-        cur_line[0][1], cur_line[1][1])
-      output_aya_segment(vals, img_gray)
+    # we ignore pages 1 and 2 because they always have empty spaces at the end
+    if i > 2:
+      for l in range(line, num_lines):
+        cur_line = lines[l]
+        pos = pos + 1
+        maxx = cur_line_maxx
+        if x_pos_in_line > 0:
+          maxx = x_pos_in_line
+          x_pos_in_line = -1
+        vals = (i, l + 1, sura, ayah, pos, cur_line[0][0], maxx,
+          cur_line[0][1], cur_line[1][1])
+        output_aya_segment(vals, img_gray)
 
   # done with detecting segments, now write using cv2
   image_name = outFolder + "z" + str(i) + ".png"
