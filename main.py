@@ -1,39 +1,43 @@
 import sys
+import random
+import argparse
 import cv2
-from verses_count import verses_count
 from PIL import Image
 from PIL import ImageDraw
-from lines import find_lines
-from lines import find_lines2,find_lines3
+from verses_count import verses_count
+from lines import find_lines, find_lines2,find_lines3
 from ayat import find_ayat, draw, output_aya_segment
-import random
 
 
-# validate input args
-count_method_keys = list(verses_count.keys())
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input_path', type=str, required=True,
+                        help='''Path to input folder containing PNG images''')
+    parser.add_argument('--output_path', type=str, required=True,
+                        help='''Path to output folder to generate verification images in''')
+    parser.add_argument('--separator1_path', type=str, required=True,
+                        help='''Path to separator image template for pages 1 and 2''')
+    parser.add_argument('--separator3_path', type=str, required=True,
+                        help='''Path to separator image template for pages 3 up to the end''')
+    parser.add_argument('--count_method', type=str, choices=list(verses_count.keys()), required=True,
+                        help='''Counting method to use''')
+    parser.add_argument('--start_page', type=int, default=1,
+                        help='''Start page, default = 1''')
+    parser.add_argument('--end_page', type=int, default=604,
+                        help='''End page, default = 604''')
+    parser.add_argument('--start_sura', type=int, default=1,
+                        help='''Start sura number, default = 1''')
+    parser.add_argument('--start_aya', type=int, default=1,
+                        help='''Start aya number, default = 1''')
+    return parser.parse_args()
 
-if len(sys.argv) != 6:
-  print "USAGE: " + sys.argv[0] + \
-    " [PATH_TO_IMAGES_FOLDER]" + \
-    " [PATH_TO_SEPARATOR_FROM_PAGE_3-604]" + \
-    " [PATH_TO_SEPARATOR_FROM_PAGE_1-2]" + \
-    " [PATH_TO_OUTPUT_FOLDER]" + \
-    " [COUNT_METHOD=" + "|".join(count_method_keys) + "]"
-  sys.exit(1)
+args = parse_arguments()
 
-image_dir = sys.argv[1] + '/'
-separator2 = sys.argv[2]
-separator1 = sys.argv[3]
-out_folder = sys.argv[4] + '/'
-count_method = sys.argv[5]
-
-if count_method not in verses_count:
-  print "COUNT_METHOD should be one of: " + "|".join(count_method_keys)
-  sys.exit(2)
-
-count_ayat = verses_count[count_method]
-sura = 1
-ayah = 1
+image_dir = args.input_path + '/'
+out_folder = args.output_path + '/'
+count_ayat = verses_count[args.count_method]
+sura = args.start_sura
+ayah = args.start_aya
 lines_to_skip = 0
 default_lines_to_skip = 2
 
@@ -46,7 +50,7 @@ def r(): return random.randint(0, 255)
 # shamerly: 2, 523 (last page: 522) - lines to skip: 3 (2 + 1 basmala)
 # qaloon: 1, 605 (last page: 604) - lines to skip: 2 (1 + 1 basmala)
 #sura: 1,6
-for i in range(1,605):
+for i in range(args.start_page, args.end_page + 1):
   filename = str(i) + '.png'
   print filename
   print image_dir + filename
@@ -92,9 +96,9 @@ for i in range(1,605):
   #img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
   img_gray = cv2.imread(image_dir + filename, -1)
   if i == 1 or i == 2:
-    template = cv2.imread(separator1, -1)
+    template = cv2.imread(args.separator1_path, -1)
   else:
-    template = cv2.imread(separator2, -1)
+    template = cv2.imread(args.separator3_path, -1)
 
   ayat = find_ayat(img_gray, template)
   print 'found: %d ayat on page %d' % (len(ayat), i)
