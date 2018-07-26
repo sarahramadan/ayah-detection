@@ -161,6 +161,10 @@ for i in range(args.start_page, args.end_page + 1):
         if end_of_sura or i == 2 and ayah_item == ayat[-1]:
           minx = 0
 
+        # check if this is header/basmalah, it must occupy the whole line
+        if (vals[3] == -1 or vals[3] == 0) and (vals[5] != 0 or vals[6] != cur_line_maxx):
+          raise RuntimeError('Something is wrong: Header or Basmalah are not occuping the whole line')
+
         vals = (i, line + 1, sura, ayah, pos, minx, maxx, miny, maxy)
         output_aya_segment(vals, img_gray)
 
