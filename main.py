@@ -38,8 +38,8 @@ out_folder = args.output_path + '/'
 count_ayat = verses_count[args.count_method]
 sura = args.start_sura
 ayah = args.start_aya
-lines_to_skip = 0
 default_lines_to_skip = 2
+lines_to_skip = default_lines_to_skip
 
 # by default, we don't increase the ayah on the top of this loop
 # to handle ayat that span multiple pages - this flag allows us to
