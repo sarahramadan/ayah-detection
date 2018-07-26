@@ -44,13 +44,12 @@ def process(ayat):
       result.append(s)
    return result
 
-def find_ayat(img_gray, template):
+def find_ayat(img_gray, template, matching_threshold=0.42):
    w = template.shape[1]
    h = template.shape[0]
 
    res = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
-   threshold = 0.42
-   loc = np.where( res >= threshold)
+   loc = np.where(res >= matching_threshold)
 
    points = zip(*loc[::-1])
    ayat = []

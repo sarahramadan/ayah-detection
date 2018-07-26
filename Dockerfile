@@ -19,8 +19,9 @@ CMD ["python", "./main.py", \
   "--output_path", "./output", \
   "--separator1_path", "./separator1.png", \
   "--separator3_path", "./separator3.png", \
-  # "--start_page", "10", \
-  # "--start_sura", "2", \
-  # "--start_aya", "61", \
-  # "--end_page", "20", \
-  "--count_method", "basry"]
+  # "--start_page", "560", \
+  # "--start_sura", "66", \
+  # "--start_aya", "1", \
+  # "--end_page", "458", \
+  "--count_method", "basry", \
+  "--matching_threshold", "0.42"]

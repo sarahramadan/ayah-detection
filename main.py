@@ -29,6 +29,8 @@ def parse_arguments():
                         help='''Start sura number, default = 1''')
     parser.add_argument('--start_aya', type=int, default=1,
                         help='''Start aya number, default = 1''')
+    parser.add_argument('--matching_threshold', type=float, default=0.42,
+                        help='''Matching threshold to match aya separators, default = 0.42''')
     return parser.parse_args()
 
 args = parse_arguments()
@@ -100,7 +102,7 @@ for i in range(args.start_page, args.end_page + 1):
   else:
     template = cv2.imread(args.separator3_path, -1)
 
-  ayat = find_ayat(img_gray, template)
+  ayat = find_ayat(img_gray, template, args.matching_threshold)
   print 'found: %d ayat on page %d' % (len(ayat), i)
 
   tpl_width = template.shape[1]
