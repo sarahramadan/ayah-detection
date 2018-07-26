@@ -41,7 +41,7 @@ default_lines_to_skip = 2
 # to handle ayat that span multiple pages - this flag allows us to
 # override this.
 end_of_ayah = False
-r = lambda: random.randint(0,255)
+def r(): return random.randint(0, 255)
 # warsh: 1, 560 (last page: 559)
 # shamerly: 2, 523 (last page: 522) - lines to skip: 3 (2 + 1 basmala)
 # qaloon: 1, 605 (last page: 604) - lines to skip: 2 (1 + 1 basmala)

@@ -125,8 +125,10 @@ def draw(img_rgb, template, ayat, output = None):
    if output is not None:
       cv2.imwrite(output, img_rgb)
 
-aya_colors = [(randint(128, 255), randint(128, 255), randint(128, 255), 255)
-              for i in range(-1, 300)]
+
+def r(): return randint(128, 255)
+
+aya_colors = [(r(), r(), r(), 255) for i in range(-1, 300)]
 font = cv2.FONT_HERSHEY_SIMPLEX
 
 def output_aya_segment(vals, image):
