@@ -9,10 +9,29 @@ from ayat import find_ayat, draw, output_aya_segment
 import random
 
 
-outFolder = sys.argv[4] + '/'
-recitation = int(sys.argv[5])
-count_ayat = verses_count[recitation]
+# validate input args
+count_method_keys = list(verses_count.keys())
 
+if len(sys.argv) != 6:
+  print "USAGE: " + sys.argv[0] + \
+    " [PATH_TO_IMAGES_FOLDER]" + \
+    " [PATH_TO_SEPARATOR_FROM_PAGE_3-604]" + \
+    " [PATH_TO_SEPARATOR_FROM_PAGE_1-2]" + \
+    " [PATH_TO_OUTPUT_FOLDER]" + \
+    " [COUNT_METHOD=" + "|".join(count_method_keys) + "]"
+  sys.exit(1)
+
+image_dir = sys.argv[1] + '/'
+separator2 = sys.argv[2]
+separator1 = sys.argv[3]
+out_folder = sys.argv[4] + '/'
+count_method = sys.argv[5]
+
+if count_method not in verses_count:
+  print "COUNT_METHOD should be one of: " + "|".join(count_method_keys)
+  sys.exit(2)
+
+count_ayat = verses_count[count_method]
 sura = 1
 ayah = 1
 lines_to_skip = 0
@@ -28,8 +47,6 @@ r = lambda: random.randint(0,255)
 # qaloon: 1, 605 (last page: 604) - lines to skip: 2 (1 + 1 basmala)
 #sura: 1,6
 for i in range(1,605):
-  image_dir = sys.argv[1] + '/'
-  #filename = "001_Page_"+str(i).zfill(2) + '.jpg'
   filename = str(i) + '.png'
   print filename
   print image_dir + filename
@@ -68,16 +85,16 @@ for i in range(1,605):
     drawMe.rectangle(lines[index],fill=(r(),r(),r(),100))
     index += 1
   del drawMe
-  image.save(outFolder + str(i).zfill(3) + 'output.png', "PNG")
+  image.save(out_folder + str(i).zfill(3) + 'output.png', "PNG")
   # **************************************************
 
   #img_rgb = cv2.imread(image_dir + filename)
   #img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
   img_gray = cv2.imread(image_dir + filename, -1)
   if i == 1 or i == 2:
-    template = cv2.imread(sys.argv[3], -1)
+    template = cv2.imread(separator1, -1)
   else:
-    template = cv2.imread(sys.argv[2], -1)
+    template = cv2.imread(separator2, -1)
 
   ayat = find_ayat(img_gray, template)
   print 'found: %d ayat on page %d' % (len(ayat), i)
@@ -210,7 +227,7 @@ for i in range(1,605):
         output_aya_segment(vals, img_gray)
 
   # done with detecting segments, now write using cv2
-  image_name = outFolder + "z" + str(i) + ".png"
+  image_name = out_folder + "z" + str(i) + ".png"
   cv2.imwrite(image_name, img_gray)
 
   # now paste segmented to original

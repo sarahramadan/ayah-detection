@@ -14,4 +14,4 @@ COPY . /home
 
 # CMD ["./svg2png.sh", "800", "10", "/svg", "./output/images"]
 # CMD ["python", "./fix_color_mode.py", "./output/images/800"]
-CMD ["python", "./main.py", "./output/images/800", "./separator1.png", "./separator2.png", "./output", "1"]
+CMD ["python", "./main.py", "./output/images/800", "./separator1.png", "./separator2.png", "./output", "basry"]
