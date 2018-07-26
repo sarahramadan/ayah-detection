@@ -137,7 +137,7 @@ def output_aya_segment(vals, image):
   bottom_right = (int(vals[6]), int(vals[8]))
   color = aya_colors[int(vals[3])]
   cv2.rectangle(image, top_left, bottom_right, color, -1)
-  text = str(vals[3]) + ':' + str(vals[4])
+  text = str(vals[3]) + ':' + str(vals[4]) + '[' + str(vals[2]) + ']'
   cv2.putText(image, text, (0 + int(vals[5]), 20 + int(vals[7])), font, 0.6, (0, 0, 0, 255), 1, cv2.LINE_AA)
 
 if __name__ == "__main__":
