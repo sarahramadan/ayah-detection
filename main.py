@@ -156,8 +156,9 @@ for i in range(args.start_page, args.end_page + 1):
         if count_ayat[sura - 1] == ayah:
           end_of_sura = True
 
-        # last aya in sura segment must extend to the rightmost, the empty space is ugly
-        if end_of_sura:
+        # last aya in sura segment must extend to the leftmost, the empty space is ugly
+        # also last ayah in page 2 must extend to the leftmost
+        if end_of_sura or i == 2 and ayah_item == ayat[-1]:
           minx = 0
 
         vals = (i, line + 1, sura, ayah, pos, minx, maxx, miny, maxy)
