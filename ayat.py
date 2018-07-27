@@ -130,8 +130,9 @@ def r(): return randint(128, 255)
 aya_colors = [(r(), r(), r(), 255) for i in range(-1, 300)]
 font = cv2.FONT_HERSHEY_SIMPLEX
 
-def output_aya_segment(vals, image):
-  print 'insert into glyphs values(NULL, %d, %d, %d, %d, %d, %d, %d, %d, %d);' % vals
+def output_aya_segment(vals, image, file):
+  file.write(
+      'insert into glyphs values(NULL, %d, %d, %d, %d, %d, %d, %d, %d, %d);\n' % vals)
   # schema: id, pageId, lineId, suraId, verseId, indexId, left, right, top, bottom
   top_left = (int(vals[5]), int(vals[7]))
   bottom_right = (int(vals[6]), int(vals[8]))
