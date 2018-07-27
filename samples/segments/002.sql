@@ -1,0 +1,11 @@
+insert into glyphs values(NULL, 2, 1, 2, -1, 1, 0, 800, 0, 111);
+insert into glyphs values(NULL, 2, 2, 2, 0, 1, 0, 800, 111, 222);
+insert into glyphs values(NULL, 2, 3, 2, 1, 1, 0, 800, 222, 334);
+insert into glyphs values(NULL, 2, 4, 2, 1, 2, 581, 800, 334, 445);
+insert into glyphs values(NULL, 2, 4, 2, 2, 1, 0, 581, 334, 445);
+insert into glyphs values(NULL, 2, 5, 2, 2, 2, 266, 800, 445, 556);
+insert into glyphs values(NULL, 2, 5, 2, 3, 1, 0, 266, 445, 556);
+insert into glyphs values(NULL, 2, 6, 2, 3, 2, 0, 800, 556, 668);
+insert into glyphs values(NULL, 2, 7, 2, 3, 3, 511, 800, 668, 779);
+insert into glyphs values(NULL, 2, 7, 2, 4, 1, 0, 511, 668, 779);
+insert into glyphs values(NULL, 2, 8, 2, 4, 2, 0, 800, 779, 891);
