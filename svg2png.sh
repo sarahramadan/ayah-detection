@@ -11,8 +11,11 @@ padding=$2
 input_folder=$3
 output_folder=$4/$image_width
 
+echo "Removing some paths and polygons from SVGs..."
 find $input_folder/*.svg -exec sed -i -z 's/<path\s*clip[^<]*\/>//g' {} +
 find $input_folder/*.svg -exec sed -i -z 's/<polygon\s*clip[^<]*\/>//g' {} +
+echo "Done removing some paths and polygons from SVGs"
+
 rm -fr $output_folder
 mkdir -p $output_folder
 
@@ -24,8 +27,8 @@ do
   output_file=`basename $input_file .svg`
   # remove leading zeros from the output file name
   output_file=${output_file##+(0)}
-	inkscape -z -e $output_folder/$output_file.png -w $image_width --export-area-drawing $input_file
-done
+	echo "-e $output_folder/$output_file.png -w $image_width --export-area-drawing $input_file"
+done | inkscape --shell
 shopt -u extglob # disable again
 echo "Done converting files from SVG to PNG"
 
