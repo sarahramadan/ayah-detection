@@ -28,7 +28,7 @@ do
   # remove leading zeros from the output file name
   output_file=${output_file##+(0)}
 	echo "-e $output_folder/$output_file.png -w $image_width --export-area-drawing $input_file"
-done | inkscape --shell
+done | inkscape --shell | grep Bitmap
 shopt -u extglob # disable again
 echo "Done converting files from SVG to PNG"
 

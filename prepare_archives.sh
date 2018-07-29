@@ -23,10 +23,12 @@ images_output_folder_base=$4
 archives_output_folder=$5
 recitation_id=$6
 
-# set bash verbose mode
-set -x
+rm -f $archives_output_folder/*
 
 for width in 320 480 800 1200 1500; do
+  echo =================================
+  echo ---- PREPARING WIDTH $width -----
+  echo =================================
   archive_root=`mktemp -d`
   archive_name=`echo -n ${recitation_id}_${width}.zip | md5sum | cut -d' ' -f1`
   # generate PNGs for sizes othen than the reference 800
@@ -34,10 +36,12 @@ for width in 320 480 800 1200 1500; do
     ./svg2png.sh $width $padding $svg_input_folder $images_output_folder_base
   fi
   # reduce color palette to 256 for all sizes
+  echo "Reducing color palette to 256 and depth to 8 in $images_output_folder_base/$width..."
   mogrify -colors 256 -depth 8 +dither $images_output_folder_base/$width/*.png
   # encrypt images
   (
     cd $images_output_folder_base/$width
+    echo "Encrypting images in $images_output_folder_base/$width..."
     find -name "*.png" -exec \
       openssl enc -aes-128-cbc \
       -in {} \
@@ -52,6 +56,7 @@ for width in 320 480 800 1200 1500; do
   # -n to skip compression for suffix .png (no need, don't even try and waste time)
   # -m to delete after zipping
   # -j to exclude path names
+  echo "Generating the final archive at $archives_output_folder/$archive_name..."
   zip -n .png -m -j -q $archives_output_folder/$archive_name.zip $archive_root/*
   # .zip extension is added automatically even if not specified, remove it
   mv $archives_output_folder/$archive_name.zip $archives_output_folder/$archive_name
