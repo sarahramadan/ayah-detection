@@ -120,17 +120,9 @@ def export_data_sql(data, recitation_id, file_name):
   print("Exporting %d records to %s..." % (len(data), file_name))
   with open(file_name, 'wb') as file:
     for row in data:
-      file.write('''
-      INSERT INTO recitations_data (
-        recitation_id,
-        page_id,
-        line_id,
-        sura_id,
-        verse_id,
-        data
-      ) VALUES (%s, %s, %s, %s, %s, '%s');
-      ''' \
-      % (recitation_id, row[0], row[1], row[2], row[3], row[4]))
+      file.write(
+        "INSERT INTO recitations_data (recitation_id, page_id, line_id, sura_id, verse_id, data) VALUES (%s, %s, %s, %s, %s, '%s')\n" \
+          % (recitation_id, row[0], row[1], row[2], row[3], row[4]))
 
 
 def export_data_tsv(data, recitation_id, file_name):
