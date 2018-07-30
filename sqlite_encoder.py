@@ -128,7 +128,7 @@ def export_data_sql(data, recitation_id, file_name):
 def export_data_tsv(data, recitation_id, file_name):
   print("Exporting %d records to %s..." % (len(data), file_name))
   with open(file_name, 'wb') as file:
-    writer = csv.writer(file, delimiter='\t',
+    writer = csv.writer(file, delimiter='\t', lineterminator='\r',
                             quotechar='"', quoting=csv.QUOTE_MINIMAL)
     writer.writerow([
       'rewayaId',
@@ -163,7 +163,7 @@ if __name__ == "__main__":
     file_name = "%s/%d.sql" % (out_dir, width)
     export_data_sql(data, args.recitation_id, file_name)
     if width == 800:
-      file_name = "%s/%d.tsv" % (out_dir, width)
+      file_name = "%s/RecitationData%d.tsv" % (out_dir, args.recitation_id)
       export_data_tsv(data, args.recitation_id, file_name)
 
   conn.close()
