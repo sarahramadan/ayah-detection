@@ -167,6 +167,7 @@ Where:
 * `/svg/output/encoded` is the input folder containing generated region files from the previous step
 * `/svg/output/images` is the output folder to store resulting images
 * `/svg/output/archives` is the output folder to store resulting archives
+* `4` is the recitation ID
 
 *IMPORTANT*:
 For this script to run, you must supply 2 environment variables for encryption to work.
