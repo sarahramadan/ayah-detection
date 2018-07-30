@@ -18,13 +18,12 @@ For the first time, you need to build the docker image that is used to run the b
 
 ## Run the Docker container
 
+### Option 1:
+
 In the below scripts, one option is to open a bash shell container based on
 the image you built in the previous step, then run all the scripts under this shell.
-Alternatively, you can launch each script in its own separate container.
 
-Option 1:
-
-    docker run -it --rm ayahdet:3
+    docker run -it --rm ayahdet:1
 
 This will open a bash shell where you can run all the scripts.
 For example:
@@ -32,21 +31,22 @@ For example:
     ./svg2png.sh ...
     python detect_lines.py ...
 
-Option 2:
+### Option 2:
 
-  docker run -it --rm ayahdet:3 ./svg2png.sh ...
-  docker run -it --rm ayahdet:3 python detect_lines.py ...
+Alternatively, you can launch each script in its own separate container.
+
+  docker run -it --rm ayahdet:1 ./svg2png.sh ...
+  docker run -it --rm ayahdet:1 python detect_lines.py ...
 
 ## Steps for new recitations
 
 Locate the SVG folder that contains 604 images in SVG format.
 In the below examples, we assume this is located at `~/Downloads/MHFZ_SOSY`.
 You must mount this as a volume when launching your Docker container.
-If we go for option 1:
 
-    docker run -it --rm -v ~/Downloads/MHFZ_SOSY:/svg ayahdet:3
+    docker run -it --rm -v ~/Downloads/MHFZ_SOSY:/svg ayahdet:1
 
-1. Convert SVG to PNG
+### 1. Convert SVG to PNG
 
     ./svg2png.sh 800 10 /svg /svg/output/images
 
@@ -56,13 +56,13 @@ Where:
 * `/svg` is the input folder (mounted by docker)
 * `/svg/output/images` is the output folder to store resulting images
 
-2. Make sure all PNG images are stored in RGBA format
+### 2. Make sure all PNG images are stored in RGBA format
 
     python ./fix_color_mode.py /svg/output/images/800
 
 Where `/svg/output/images/800` is the generated folder from the previous step.
 
-3. Detect text lines for each page
+### 3. Detect text lines for each page
 
     python ./detect_lines.py \
       --input_path /svg/output/images/800 \
@@ -82,7 +82,7 @@ to make sure lines are properly separated with no or minor overlap
 between text. If necessary, edit the corresponding SVGs to minimize
 any overlap.
 
-4. Detect verse separators using image templates for each page
+### 4. Detect verse separators using image templates for each page
 
     python ./detect_ayat.py \
       --input_path /svg/output/images/800 \
@@ -127,7 +127,7 @@ For example, a very small missed separator requires a lower threshold.
 So you can try `0.39`. Do not restart the script from page 1 so that
 you don't get different errors in the early pages.
 
-5. Generate encoded region files
+### 5. Generate encoded region files
 
 After manually verifying lines and aya regions, it is time to generate
 region files for each screen resolution in a format that is compatible
@@ -147,7 +147,7 @@ Where:
 * `--recitation_id` is the recitation ID of the segmented data
   (check `recitations.csv` for the complete list)
 
-6. Generate archives, ready for the cloud
+### 6. Generate archives, ready for the cloud
 
 The final step is to generate the archives that will be uploaded to the cloud.
 Each archive is a zip file containing encrypted images plus the regions file.
@@ -177,21 +177,21 @@ They are namely:
 
 If using option 1, you can pass these 2 from the docker command with the `-e` switch, example:
 
-    docker run -it --rm -e ENCRYPTION_KEY=<KEY> -e ENCRYPTION_IV=<IV> ayahdet:3
+    docker run -it --rm -e ENCRYPTION_KEY=<KEY> -e ENCRYPTION_IV=<IV> ayahdet:1
 
 If using option 2, simply export them as bash variables before running the script:
 
     export ENCRYPTION_KEY=<KEY>
     export ENCRYPTION_IV=<IV>
 
-7. Upload archives to the cloud
+### 7. Upload archives to the cloud
 
 Just upload the generated archives from the previous step
 to the configured cloud server as is.
 
-8. Update the mobile apps
+### 8. Update the mobile apps
 
-8.1 iOS
+#### 8.1 iOS
 
 Four steps are required to support the new recitation:
 
@@ -203,11 +203,11 @@ Four steps are required to support the new recitation:
   added file under the dictionary `RecitationsData`.
 * Increase the app bundle version to trigger a CoreData migration.
 
-8.2 Android
+#### 8.2 Android
 
 TODO
 
-8.3 Windows
+#### 8.3 Windows
 
 TODO
 
@@ -216,7 +216,7 @@ TODO
 TODO modify scripts to automate this scenario.
 Also do image diff and sql diff to identify changes alone.
 
-First Run:
+### First Run:
 
 You simply mount the new SVG folder with the changed pages only
 and do all the steps as above with a few exceptions:
@@ -233,7 +233,7 @@ in all the 3 updates.
 
 3. TODO Put new instructions for mobile platform specific projects
 
-Second Run:
+### Second Run:
 
 You also need to copy any changed files from the First Run to
 the original run (the whole SVGs) and repeat all the steps to upload
