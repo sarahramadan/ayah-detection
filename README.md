@@ -1,69 +1,240 @@
-Quran Utilities
-=========
+# Elmohafez Aya Detectors
 
 بسم الله الرحمن الرحيم
 
-Quran utils is a set of scripts for detecting ayat in quran images. it's very rough, but it definitely works (tested on 3 sets of images - shamerly, qaloon, and warsh images).
+This is based on [Quran Utilities](https://github.com/quran/ayah-detection)
+from quran organizatoin.
 
-Files
-------
-* `ayat.py` - detects ayah images in a particular image.
-* `lines.py` - "detects" lines in a particular image
-* `loop.py` - a verification utility.
-* `main.py` - main loop for generating a database from images
-* `make_transparent.py` - make an image with a white background transparent
-* `make_white.py` - make an image with a transparent background white
+## System requirements
 
-ayat.py
----------
-`ayat.py` is responsible for detecting ayah images inside a page image. note that it works best on images with a white background (see `make_white.py` if your image has a transparent background).
+Make sure you have [Docker](https://docs.docker.com/install/) installed on your system.
+If you are using Docker for Windows, make sure you enable Linux containers.
 
-requirements:
-* opencv and python bindings (`brew install homebrew/science/opencv`)
-* matplotlib (`pip install matplotlib`)
-* numpy (`pip install numpy`)
+## Build the Docker image
 
-you also need a template image. you make one by cutting out an ayah marker image from one of your pages. the threshold is set low enough such that it will match all of the marker images despite the different numbers. some examples exist under `images/templates`.
+For the first time, you need to build the docker image that is used to run the below scripts.
 
-lines.py
----------
-`lines.py` attempts to figure out where the lines are in a certain image. it does this by searching for white space between the images. consequently, it's the least accurate of the scripts. i typically verify it by running it across all images and making sure i get 15 lines for each page.
+    docker build . -t ayahdet:1
 
-requirements:
-* pillow (`pip install pillow`)
+## Run the Docker container
 
-there are 3 numbers you'll find configured in the main - line height (approximate height of each line), max pixels (a threshold - how many pixels in a line make the line a quran line vs a line of tashkeel between two lines), and mode (0 or 1 - i think this is used for how to handle the very first line - pass 0 for most cases).
+In the below scripts, one option is to open a bash shell container based on
+the image you built in the previous step, then run all the scripts under this shell.
+Alternatively, you can launch each script in its own separate container.
 
-main.py
------------
-`main.py` is what outputs sql from a set of images. before running it, you want to make sure you can run `ayat.py` and validate its output, along with `lines.py` and validate its output. `main.py` is just a wrapper that combines the results from the above scripts to generate sql, which it prints to the command line.
+Option 1:
 
-to run it:
-`python main.py images/shamerly images/template/shamerly.png > shamerly.out`
+    docker run -it --rm ayahdet:3
 
-loop.py
----------
-`loop.py` is used in conjunction with things like `find_errors.pl` to do some basic validation. i was using it to figure out where each sura starts/ends, so i could then
-check that particular page and verify.
+This will open a bash shell where you can run all the scripts.
+For example:
 
-Quran Android
--------------
-in order to be compatible with Quran Android, just generate a database file with similar structure to the existing ayahinfo database files.
+    ./svg2png.sh ...
+    python detect_lines.py ...
 
-    CREATE TABLE glyphs(
-      glyph_id int not null,
-      page_number int not null,
-      line_number int not null,
-      sura_number int not null,
-      ayah_number int not null,
-      position int not null,
-      min_x int not null,
-      max_x int not null,
-      min_y int not null,
-      max_y int not null,
-      primary key(glyph_id)
-    );
-    CREATE INDEX sura_ayah_idx on glyphs(sura_number, ayah_number);
-    CREATE INDEX page_idx on glyphs(page_number);
+Option 2:
 
-note: currently, `glyph_id` is set to `NULL` in the script, which is problematic. we can just put a number and increase it as need be, since using `AUTOINCREMENT` in sqlite has performance implications.
+  docker run -it --rm ayahdet:3 ./svg2png.sh ...
+  docker run -it --rm ayahdet:3 python detect_lines.py ...
+
+## Steps for new recitations
+
+Locate the SVG folder that contains 604 images in SVG format.
+In the below examples, we assume this is located at `~/Downloads/MHFZ_SOSY`.
+You must mount this as a volume when launching your Docker container.
+If we go for option 1:
+
+    docker run -it --rm -v ~/Downloads/MHFZ_SOSY:/svg ayahdet:3
+
+1. Convert SVG to PNG
+
+    ./svg2png.sh 800 10 /svg /svg/output/images
+
+Where:
+* `800` is the desired image width, known as reference width
+* `10` is the padding to add to images
+* `/svg` is the input folder (mounted by docker)
+* `/svg/output/images` is the output folder to store resulting images
+
+2. Make sure all PNG images are stored in RGBA format
+
+    python ./fix_color_mode.py /svg/output/images/800
+
+Where `/svg/output/images/800` is the generated folder from the previous step.
+
+3. Detect text lines for each page
+
+    python ./detect_lines.py \
+      --input_path /svg/output/images/800 \
+      --output_path /svg/output \
+      --start_page 1 \
+      --end_page 10
+
+Where:
+* `--input_path` is the path to input folder containing PNG images
+* `--output_path` is the path to output folder to generate verification images in
+* `--start_page` is an optional start page (default is 1)
+* `--end_page` is an optional end page (default is 604)
+
+*IMPORTANT*:
+Manually verify all the generated images under `--output_path/lines`
+to make sure lines are properly separated with no or minor overlap
+between text. If necessary, edit the corresponding SVGs to minimize
+any overlap.
+
+4. Detect verse separators using image templates for each page
+
+    python ./detect_ayat.py \
+      --input_path /svg/output/images/800 \
+      --output_path /svg/output \
+      --separator1_path ./separator1.png \
+      --separator3_path ./separator3.png \
+      --count_method basry \
+      --matching_threshold 0.42 \
+      --start_page 560 \
+      --start_sura 66 \
+      --start_aya 1 \
+      --end_page 604
+
+Where:
+* `--input_path` is the path to input folder containing PNG images
+* `--output_path` is the path to output folder to generate verification images in
+* `--separator1_path` is the path to separator image template for pages 1 and 2
+* `--separator3_path` is the path to separator image template for pages 3 up to the end
+* `--count_method` is the counting method to use (choices are `{basry,shamy,madany2,madany1,kofy,makky}`)
+* `--matching_threshold` is the matching threshold to match aya separators, default = 0.42
+* `--start_page` is an optional start page (default is 1)
+* `--start_sura` is an optional start sura (default is 1)
+* `--start_aya` is an optional start aya (default is 1)
+* `--end_page` is an optional end page (default is 604)
+
+If you want to start from the middle, make sure the first sura and aya in that page are
+specified correctly in `--start_sura` and `--start_aya`.
+
+*IMPORTANT*:
+Manually verify all the generated images under `--output_path/ayat`
+to make sure all aya separators are identified correctly.
+Based on the detection, aya regions are highlighted in random colors
+with a small text overlaid on each region. It is in the format
+`aya:region[sura]`. Sura headers have the special aya number `-1`
+while basmalah verses have the number `0`.
+
+The script may fail in the middle if any separator is missed causing
+aya counts to go beyond array boundaries. In such case, manually
+check which page the first misdetection happened at, and restart
+the script from there, but with a slightly modified `--matching_threshold`.
+For example, a very small missed separator requires a lower threshold.
+So you can try `0.39`. Do not restart the script from page 1 so that
+you don't get different errors in the early pages.
+
+5. Generate encoded region files
+
+After manually verifying lines and aya regions, it is time to generate
+region files for each screen resolution in a format that is compatible
+with Android, iOS and Windows.
+
+    python ./sqlite_encoder.py \
+      --input_path /svg/output/segments \
+      --output_path /svg/output/encoded \
+      --reference_width 800 \
+      --recitation_id 4
+
+Where:
+* `--input_path` is the path to input folder containing segmented data SQL files to import
+* `--output_path` is the path to output folder to generate platform specific files into
+* `--reference_width` is the reference width of which segmented data SQL files were generated
+  (the same one that you used in step 1)
+* `--recitation_id` is the recitation ID of the segmented data
+  (check `recitations.csv` for the complete list)
+
+6. Generate archives, ready for the cloud
+
+The final step is to generate the archives that will be uploaded to the cloud.
+Each archive is a zip file containing encrypted images plus the regions file.
+A separate archive is generated for each screen resolution.
+
+    ./prepare_archives.sh \
+      10 \
+      /svg \
+      /svg/output/encoded \
+      /svg/output/images \
+      /svg/output/archives \
+      4
+
+Where:
+* `10` is the padding to add to images (same as you used in step 1)
+* `/svg` is the input folder (mounted by docker)
+* `/svg/output/encoded` is the input folder containing generated region files from the previous step
+* `/svg/output/images` is the output folder to store resulting images
+* `/svg/output/archives` is the output folder to store resulting archives
+
+*IMPORTANT*:
+For this script to run, you must supply 2 environment variables for encryption to work.
+These must match the public key that is used inside the app to decode the images.
+They are namely:
+* `ENCRYPTION_KEY`: Encryption Key
+* `ENCRYPTION_IV`: Initialization Vector
+
+If using option 1, you can pass these 2 from the docker command with the `-e` switch, example:
+
+    docker run -it --rm -e ENCRYPTION_KEY=<KEY> -e ENCRYPTION_IV=<IV> ayahdet:3
+
+If using option 2, simply export them as bash variables before running the script:
+
+    export ENCRYPTION_KEY=<KEY>
+    export ENCRYPTION_IV=<IV>
+
+7. Upload archives to the cloud
+
+Just upload the generated archives from the previous step
+to the configured cloud server as is.
+
+8. Update the mobile apps
+
+8.1 iOS
+
+Four steps are required to support the new recitation:
+
+* Edit `ElMohafez/sources/recitations.csv` to enable the recitation
+  and to set its mediaType to 1 (images).
+* Add `/svg/output/encoded/RecitationData<ID>.tsv` to the project under
+  `ElMohafez/sources/`
+* Add a new dictionary to `ElMohafez/sources/Seed.plist` to refer to the newly
+  added file under the dictionary `RecitationsData`.
+* Increase the app bundle version to trigger a CoreData migration.
+
+8.2 Android
+
+TODO
+
+8.3 Windows
+
+TODO
+
+## Steps for updated recitations
+
+TODO modify scripts to automate this scenario.
+Also do image diff and sql diff to identify changes alone.
+
+First Run:
+
+You simply mount the new SVG folder with the changed pages only
+and do all the steps as above with a few exceptions:
+
+1. The generated SQLs in step 5 must contain a delete statement
+in the first line to remove the older records in preparation of
+adding the modified records. If no regions were changed, just place
+an empty file in the archive.
+
+2. The archive name must be appended with `_patch` and must contain
+all the updates happened to the original archive. So if there are 3
+updates to apply, this archive must contain all the chanaged pages
+in all the 3 updates.
+
+3. TODO Put new instructions for mobile platform specific projects
+
+Second Run:
+
+You also need to copy any changed files from the First Run to
+the original run (the whole SVGs) and repeat all the steps to upload
+a modified archive.
