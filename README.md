@@ -29,14 +29,14 @@ This will open a bash shell where you can run all the scripts.
 For example:
 
     ./svg2png.sh ...
-    python detect_lines.py ...
+    ./detect_lines.py ...
 
 ### Option 2:
 
 Alternatively, you can launch each script in its own separate container.
 
   docker run -it --rm ayahdet:1 ./svg2png.sh ...
-  docker run -it --rm ayahdet:1 python detect_lines.py ...
+  docker run -it --rm ayahdet:1 ./detect_lines.py ...
 
 ## Steps for new recitations
 
@@ -58,13 +58,13 @@ Where:
 
 ### 2. Make sure all PNG images are stored in RGBA format
 
-    python ./fix_color_mode.py --input_path /svg/output/images/800
+    ./fix_color_mode.py --input_path /svg/output/images/800
 
 Where `--input_path` is the generated folder from the previous step.
 
 ### 3. Detect text lines for each page
 
-    python ./detect_lines.py \
+    ./detect_lines.py \
       --input_path /svg/output/images/800 \
       --output_path /svg/output \
       --start_page 1 \
@@ -84,7 +84,7 @@ any overlap.
 
 ### 4. Detect verse separators using image templates for each page
 
-    python ./detect_ayat.py \
+    ./detect_ayat.py \
       --input_path /svg/output/images/800 \
       --output_path /svg/output \
       --separator1_path ./separator1.png \
@@ -133,7 +133,7 @@ After manually verifying lines and aya regions, it is time to generate
 region files for each screen resolution in a format that is compatible
 with Android, iOS and Windows.
 
-    python ./sqlite_encoder.py \
+    ./sqlite_encoder.py \
       --input_path /svg/output/segments \
       --output_path /svg/output/encoded \
       --reference_width 800 \
