@@ -58,9 +58,9 @@ Where:
 
 ### 2. Make sure all PNG images are stored in RGBA format
 
-    python ./fix_color_mode.py /svg/output/images/800
+    python ./fix_color_mode.py --input_path /svg/output/images/800
 
-Where `/svg/output/images/800` is the generated folder from the previous step.
+Where `--input_path` is the generated folder from the previous step.
 
 ### 3. Detect text lines for each page
 
