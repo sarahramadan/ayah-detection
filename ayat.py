@@ -2,7 +2,7 @@ import cv2
 import sys
 import numpy as np
 from matplotlib import pyplot as plt
-from random import randint
+from random import randint, seed as random_seed
 
 # heavily based on the "template matching" tutorial for opencv python
 
@@ -127,16 +127,35 @@ def draw(img_rgb, template, ayat, output = None):
 
 def r(): return randint(128, 255)
 
-aya_colors = [(r(), r(), r(), 255) for i in range(-1, 300)]
+# we want random colors, but same colors per page for every run
+# because we want to be able to compare runs for faster reviewing
+random_seed(10000)
+aya_colors = [(r(), r(), r(), 255) for i in range(0, 100)]
+last_page = None
+last_aya = None
+last_color = None
 font = cv2.FONT_HERSHEY_SIMPLEX
 
 def output_aya_segment(vals, image, file):
+  global last_page, last_aya, last_color
+
   file.write(
       'insert into glyphs values(NULL, %d, %d, %d, %d, %d, %d, %d, %d, %d);\n' % vals)
   # schema: id, pageId, lineId, suraId, verseId, indexId, left, right, top, bottom
   top_left = (int(vals[5]), int(vals[7]))
   bottom_right = (int(vals[6]), int(vals[8]))
-  color = aya_colors[int(vals[3])]
+
+  page = int(vals[0])
+  aya = int(vals[3])
+  if last_page != page:
+    last_color = 0
+    last_page = page
+    last_aya = aya
+  elif last_aya != aya:
+    last_color = last_color + 1
+    last_aya = aya
+  color = aya_colors[last_color]
+
   cv2.rectangle(image, top_left, bottom_right, color, -1)
   text = str(vals[3]) + ':' + str(vals[4]) + '[' + str(vals[2]) + ']'
   cv2.putText(image, text, (0 + int(vals[5]), 20 + int(vals[7])), font, 0.6, (0, 0, 0, 255), 1, cv2.LINE_AA)
