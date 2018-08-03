@@ -33,7 +33,7 @@ for width in 320 480 800 1200 1500; do
   archive_name=`echo -n ${recitation_id}_${width}.zip | md5sum | cut -d' ' -f1`
   # generate PNGs for sizes othen than the reference 800
   if [ "$width" != "800" ]; then
-    ./svg2png.sh $width $padding $svg_input_folder $images_output_folder_base
+    ./svg2png.sh $width $padding $svg_input_folder $images_output_folder_base skip_fix
   fi
   # reduce color palette to 256 for all sizes
   echo "Reducing color palette to 256 and depth to 8 in $images_output_folder_base/$width..."

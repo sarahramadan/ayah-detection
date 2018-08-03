@@ -53,6 +53,11 @@ Where:
 * `/svg` is the input folder (mounted by docker)
 * `/svg/output/images` is the output folder to store resulting images
 
+*IMPORTANT*:
+Please note that this script modifies SVG files by removing some paths from them.
+If you want to preserve them for further editing, it is advised that
+you copy them first and work on the new copy.
+
 ### 2. Make sure all PNG images are stored in RGBA format
 
     ./fix_color_mode.py --input_path /svg/output/images/800

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-if [ "$#" -ne 4 ]; then
+if [ "$#" -lt 4 ]; then
   echo "Usage: $0 <IMAGE_WIDTH> <IMAGE_PADDING> <INPUT_FOLDER> <OUTPUT_FOLDER>" >&2
   exit 1
 fi
@@ -10,11 +10,14 @@ image_width=$1
 padding=$2
 input_folder=$3
 output_folder=$4/$image_width
+skip_svg_fix=$5
 
-echo "Removing some paths and polygons from SVGs..."
-find $input_folder/*.svg -exec sed -i -z 's/<path\s*clip[^<]*\/>//g' {} +
-find $input_folder/*.svg -exec sed -i -z 's/<polygon\s*clip[^<]*\/>//g' {} +
-echo "Done removing some paths and polygons from SVGs"
+if [ "$skip_svg_fix" == "" ]; then
+  echo "Removing some paths and polygons from SVGs..."
+  find $input_folder/*.svg -exec sed -i -z 's/<path\s*clip[^<]*\/>//g' {} +
+  find $input_folder/*.svg -exec sed -i -z 's/<polygon\s*clip[^<]*\/>//g' {} +
+  echo "Done removing some paths and polygons from SVGs"
+fi
 
 rm -fr $output_folder
 mkdir -p $output_folder
