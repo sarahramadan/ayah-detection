@@ -7,11 +7,12 @@
 Make sure you have [Docker](https://docs.docker.com/install/) installed on your system.
 If you are using Docker for Windows, make sure you enable Linux containers.
 
-## Build the Docker image
+## Get the latest Docker image
 
-For the first time, you need to build the docker image that is used to run the below scripts.
+For the first time, or whenever you need to make sure you have the latest image,
+you need to pull the docker image that is used to run the below scripts.
 
-    docker build . -t ayahdet:1
+    docker pull elmohafez/ayah-detection:latest
 
 ## Run the Docker container
 
@@ -20,7 +21,7 @@ For the first time, you need to build the docker image that is used to run the b
 In the below scripts, one option is to open a bash shell container based on
 the image you built in the previous step, then run all the scripts under this shell.
 
-    docker run -it --rm ayahdet:1
+    docker run -it --rm elmohafez/ayah-detection:latest
 
 This will open a bash shell where you can run all the scripts.
 For example:
@@ -32,8 +33,8 @@ For example:
 
 Alternatively, you can launch each script in its own separate container.
 
-  docker run -it --rm ayahdet:1 ./svg2png.sh ...
-  docker run -it --rm ayahdet:1 ./detect_lines.py ...
+    docker run -it --rm elmohafez/ayah-detection:latest ./svg2png.sh ...
+    docker run -it --rm elmohafez/ayah-detection:latest ./detect_lines.py ...
 
 ## Steps for new recitations
 
@@ -41,7 +42,7 @@ Locate the SVG folder that contains 604 images in SVG format.
 In the below examples, we assume this is located at `~/Downloads/MHFZ_SOSY`.
 You must mount this as a volume when launching your Docker container.
 
-    docker run -it --rm -v ~/Downloads/MHFZ_SOSY:/svg ayahdet:1
+    docker run -it --rm -v ~/Downloads/MHFZ_SOSY:/svg elmohafez/ayah-detection:latest
 
 ### 1. Convert SVG to PNG
 
@@ -180,7 +181,7 @@ They are namely:
 
 If using option 1, you can pass these 2 from the docker command with the `-e` switch, example:
 
-    docker run -it --rm -e ENCRYPTION_KEY=<KEY> -e ENCRYPTION_IV=<IV> ayahdet:1
+    docker run -it --rm -e ENCRYPTION_KEY=<KEY> -e ENCRYPTION_IV=<IV> elmohafez/ayah-detection:latest
 
 If using option 2, simply export them as bash variables before running the script:
 
