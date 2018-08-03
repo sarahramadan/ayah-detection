@@ -1,9 +1,6 @@
-# Elmohafez Aya Detectors
+# ElMohafez Aya Detectors
 
 بسم الله الرحمن الرحيم
-
-This is based on [Quran Utilities](https://github.com/quran/ayah-detection)
-from quran organizatoin.
 
 ## System requirements
 
@@ -239,3 +236,12 @@ in all the 3 updates.
 You also need to copy any changed files from the First Run to
 the original run (the whole SVGs) and repeat all the steps to upload
 a modified archive.
+
+## License
+
+MIT
+
+## Acknowledgements
+
+This is based on [Quran Utilities](https://github.com/quran/ayah-detection)
+from quran organizatoin.
