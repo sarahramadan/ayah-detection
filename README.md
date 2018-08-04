@@ -16,10 +16,8 @@ you need to pull the docker image that is used to run the below scripts.
 
 ## Run the Docker container
 
-### Option 1:
-
-In the below scripts, one option is to open a bash shell container based on
-the image you built in the previous step, then run all the scripts under this shell.
+In the below scripts, open a bash shell container based on
+the image you pulled/built in the previous step, then run all the scripts under this shell.
 
     docker run -it --rm elmohafez/ayah-detection:latest
 
@@ -29,12 +27,7 @@ For example:
     ./svg2png.sh ...
     ./detect_lines.py ...
 
-### Option 2:
-
-Alternatively, you can launch each script in its own separate container.
-
-    docker run -it --rm elmohafez/ayah-detection:latest ./svg2png.sh ...
-    docker run -it --rm elmohafez/ayah-detection:latest ./detect_lines.py ...
+Type `exit` when done to stop the shell container and return to your host shell.
 
 ## Steps for new recitations
 
@@ -105,7 +98,7 @@ Where:
 * `--separator1_path` is the path to separator image template for pages 1 and 2
 * `--separator3_path` is the path to separator image template for pages 3 up to the end
 * `--count_method` is the counting method to use (choices are `{basry,shamy,madany2,madany1,kofy,makky}`)
-* `--matching_threshold` is the matching threshold to match aya separators, default = 0.42
+* `--matching_threshold` is an optional matching threshold to match aya separators, default = 0.42
 * `--start_page` is an optional start page (default is 1)
 * `--start_sura` is an optional start sura (default is 1)
 * `--start_aya` is an optional start aya (default is 1)
@@ -174,19 +167,14 @@ Where:
 
 *IMPORTANT*:
 For this script to run, you must supply 2 environment variables for encryption to work.
-These must match the public key that is used inside the app to decode the images.
+These must match the keys used inside the app to decode the images.
 They are namely:
 * `ENCRYPTION_KEY`: Encryption Key
 * `ENCRYPTION_IV`: Initialization Vector
 
-If using option 1, you can pass these 2 from the docker command with the `-e` switch, example:
+You can pass these 2 from the docker command with the `-e` switch, example:
 
     docker run -it --rm -e ENCRYPTION_KEY=<KEY> -e ENCRYPTION_IV=<IV> elmohafez/ayah-detection:latest
-
-If using option 2, simply export them as bash variables before running the script:
-
-    export ENCRYPTION_KEY=<KEY>
-    export ENCRYPTION_IV=<IV>
 
 ### 7. Upload archives to the cloud
 
