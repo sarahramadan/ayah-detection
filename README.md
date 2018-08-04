@@ -185,8 +185,6 @@ to the configured cloud server as is.
 
 #### 8.1 iOS
 
-Four steps are required to support the new recitation:
-
 * Edit `ElMohafez/sources/recitations.csv` to enable the recitation
   and to set its mediaType to 1 (images).
 * Add `/svg/output/encoded/RecitationData<ID>.tsv` to the project under
@@ -197,7 +195,20 @@ Four steps are required to support the new recitation:
 
 #### 8.2 Android
 
-TODO
+* Add an SQL script to update rewaya table so that you accomplish the following
+  - Enable the new recitation if it was was not (`enabled=1`)
+  - Change `mediaType` of the new recantation to image mode (`mediaType=1`)
+  - Increment recitation version if an update is available (`data_latest_version = NEW_VERSION`)
+For example: `UPDATE Rewaya SET enabled = 1, mediaType = 1 WHERE rewayaId = 3`
+* Save the above script in a file with name `upgrade_script{VERSION}.txt` where `{VERSION}`
+  is the database version in new app release.
+* Increment the constant `DATABASE_VERSION` in the class `DataBaseAccess` to be the same as `{VERSION}`.
+  All new changes should be in one script file suffixed with the version number.
+  So, if you have any other changes to database in the same release then it should
+  be written in the same file and database version and no need to put a separate file
+  and increment database version twice.
+* Follow the regular release steps by editing apps version names and numbers in build script
+  and run gradle custom build to generate the required APKs.
 
 #### 8.3 Windows
 
