@@ -142,23 +142,30 @@ def output_aya_segment(vals, image, file):
   file.write(
       'insert into glyphs values(NULL, %d, %d, %d, %d, %d, %d, %d, %d, %d);\n' % vals)
   # schema: id, pageId, lineId, suraId, verseId, indexId, left, right, top, bottom
-  top_left = (int(vals[5]), int(vals[7]))
-  bottom_right = (int(vals[6]), int(vals[8]))
+  left_top = (int(vals[5]), int(vals[7]))
+  right_bottom = (int(vals[6]), int(vals[8]))
 
   page = int(vals[0])
   aya = int(vals[3])
+  page_text = None
   if last_page != page:
     last_color = 0
     last_page = page
     last_aya = aya
+    page_text = 'p' + str(page).zfill(3)
   elif last_aya != aya:
     last_color = last_color + 1
     last_aya = aya
   color = aya_colors[last_color]
 
-  cv2.rectangle(image, top_left, bottom_right, color, -1)
-  text = str(vals[3]) + ':' + str(vals[4]) + '[' + str(vals[2]) + ']'
-  cv2.putText(image, text, (0 + int(vals[5]), 20 + int(vals[7])), font, 0.6, (0, 0, 0, 255), 1, cv2.LINE_AA)
+  cv2.rectangle(image, left_top, right_bottom, color, -1)
+  text = str(aya) + ':' + str(vals[4]) + '[' + str(vals[2]) + ']'
+  cv2.putText(image, text, (left_top[0], left_top[1] + 20), font, 0.6, (0, 0, 0, 255), 1, cv2.LINE_AA)
+
+  if page_text is not None:
+    cv2.putText(image, page_text, (right_bottom[0] - 70, left_top[1] + 20),
+              font, 0.8, (0, 0, 0, 255), 2, cv2.LINE_AA)
+
 
 if __name__ == "__main__":
    if len(sys.argv) < 3:
