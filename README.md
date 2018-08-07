@@ -62,15 +62,11 @@ Where `--input_path` is the generated folder from the previous step.
 
     ./detect_lines.py \
       --input_path /svg/output/images/800 \
-      --output_path /svg/output \
-      --start_page 1 \
-      --end_page 10
+      --output_path /svg/output
 
 Where:
 * `--input_path` is the path to input folder containing PNG images
 * `--output_path` is the path to output folder to generate verification images in
-* `--start_page` is an optional start page (default is 1)
-* `--end_page` is an optional end page (default is 604)
 
 *IMPORTANT*:
 Manually verify all the generated images under `--output_path/lines`
