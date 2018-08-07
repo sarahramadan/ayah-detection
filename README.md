@@ -83,10 +83,9 @@ any overlap.
       --separator3_path ./separator3.png \
       --count_method basry \
       --matching_threshold 0.42 \
-      --start_page 560 \
-      --start_sura 66 \
-      --start_aya 1 \
-      --end_page 604
+      --pages 4,6,8,10..30,500 \
+      --start_sura 2,2,2,2,45 \
+      --start_aya 16,29,48,61,13
 
 Where:
 * `--input_path` is the path to input folder containing PNG images
@@ -95,13 +94,12 @@ Where:
 * `--separator3_path` is the path to separator image template for pages 3 up to the end
 * `--count_method` is the counting method to use (choices are `{basry,shamy,madany2,madany1,kofy,makky}`)
 * `--matching_threshold` is an optional matching threshold to match aya separators, default = 0.42
-* `--start_page` is an optional start page (default is 1)
-* `--start_sura` is an optional start sura (default is 1)
-* `--start_aya` is an optional start aya (default is 1)
-* `--end_page` is an optional end page (default is 604)
+* `--pages` is an optional comma seprated page numbers or ranges (default is 1..604)
+* `--start_sura` is an optional start sura numbers for each page in the input pages (default is 1)
+* `--start_aya` is an optional start aya numbers for each page in the input pages (default is 1)
 
-If you want to start from the middle, make sure the first sura and aya in that page are
-specified correctly in `--start_sura` and `--start_aya`.
+If you want to start from the middle, make sure the first sura and aya in every page are
+specified correctly in `--start_sura` and `--start_aya` in the same order.
 
 *IMPORTANT*:
 Manually verify all the generated images under `--output_path/ayat`

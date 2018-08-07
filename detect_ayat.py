@@ -3,7 +3,7 @@ import os
 import argparse
 import cv2
 from PIL import Image
-from tqdm import trange
+from tqdm import tqdm
 from verses_count import verses_count
 from ayat import find_ayat, draw, output_aya_segment
 from utils import safe_makedir, load_lines
@@ -21,20 +21,41 @@ def parse_arguments():
                         help='''Path to separator image template for pages 3 up to the end''')
     parser.add_argument('--count_method', type=str, choices=list(verses_count.keys()), required=True,
                         help='''Counting method to use''')
-    parser.add_argument('--start_page', type=int, default=1,
-                        help='''Start page, default = 1''')
-    parser.add_argument('--end_page', type=int, default=604,
-                        help='''End page, default = 604''')
-    parser.add_argument('--start_sura', type=int, default=1,
-                        help='''Start sura number, default = 1''')
-    parser.add_argument('--start_aya', type=int, default=1,
-                        help='''Start aya number, default = 1''')
+    parser.add_argument('--pages', type=str, default='1..604',
+                        help='''Comma seprated page numbers or ranges, default is 1..604''')
+    parser.add_argument('--start_sura', type=str, default='1',
+                        help='''Start sura numbers for each page in the input pages, default = 1''')
+    parser.add_argument('--start_aya', type=str, default='1',
+                        help='''Start aya numbers for each page in the input pages, default = 1''')
     parser.add_argument('--matching_threshold', type=float, default=0.42,
                         help='''Matching threshold to match aya separators, default = 0.42''')
     return parser.parse_args()
 
 
-def main_find_ayat(all_pages_lines, count_ayat, start_page, end_page,
+def parse_start_tuples(args):
+  tuples = []
+  pages = args.pages.split(',')
+  suras = args.start_sura.split(',')
+  ayahs = args.start_aya.split(',')
+  total_pages = 0
+
+  if not (len(pages) == len(suras) == len(ayahs)):
+    raise ValueError('Lengths of pages, start_sura and start_aya arguments must match')
+
+  for page, sura, ayah in zip(pages, suras, ayahs):
+    page_range = page.split('..')
+    start_page = int(page_range[0])
+    end_page = int(page_range[-1])
+    total_pages += end_page - start_page + 1
+    tuples.append({
+      'start_page': start_page,
+      'end_page': end_page,
+      'start_sura': int(sura),
+      'start_aya': int(ayah)
+    })
+  return total_pages, tuples
+
+def main_find_ayat(progress_bar, all_pages_lines, count_ayat, start_page, end_page,
                    start_sura, start_aya, separator1_path, separator3_path,
                    matching_threshold, input_path, output_path, segments_path):
   # by default, we don't increase the ayah on the top of this loop
@@ -46,7 +67,7 @@ def main_find_ayat(all_pages_lines, count_ayat, start_page, end_page,
   default_lines_to_skip = 2
 
   if start_page < 3:  # default behavior for pages 1 and 2
-  lines_to_skip = default_lines_to_skip
+    lines_to_skip = default_lines_to_skip
     ayah = 1
   elif sura == 9 and ayah < 2: # skip only 1 line (header) for tawba
     lines_to_skip = 1
@@ -57,7 +78,7 @@ def main_find_ayat(all_pages_lines, count_ayat, start_page, end_page,
   else: # don't skip anything, starting from the middle of a sura
     lines_to_skip = 0
 
-  for i in trange(start_page, end_page + 1):
+  for i in range(start_page, end_page + 1):
     filename = str(i) + '.png'
     lines = all_pages_lines[i]
 
@@ -212,9 +233,13 @@ def main_find_ayat(all_pages_lines, count_ayat, start_page, end_page,
     segmented.paste(original, mask=original)
     segmented.save(image_name, "PNG")
 
+    # finally increment progress bar
+    progress_bar.update(1)
+
 
 if __name__ == "__main__":
   args = parse_arguments()
+  total_pages, start_tuples = parse_start_tuples(args)
 
   input_path = args.input_path + '/'
   output_path = safe_makedir(args.output_path + '/ayat/')
@@ -222,15 +247,18 @@ if __name__ == "__main__":
   lines = load_lines(args.output_path)
 
   print("Finding aya boundaries using separator templates into " + output_path + "...")
-  main_find_ayat(all_pages_lines=lines,
-                 start_page=args.start_page,
-                 end_page=args.end_page,
-                 start_sura=args.start_sura,
-                 start_aya=args.start_aya,
-                 count_ayat=verses_count[args.count_method],
-                 separator1_path=args.separator1_path,
-                 separator3_path=args.separator3_path,
-                 matching_threshold=args.matching_threshold,
-                 input_path=input_path,
-                 output_path=output_path,
-                 segments_path=segments_path)
+  with tqdm(total=total_pages) as pbar:
+    for tuple in start_tuples:
+      main_find_ayat(progress_bar=pbar,
+                    all_pages_lines=lines,
+                    start_page=tuple['start_page'],
+                    end_page=tuple['end_page'],
+                    start_sura=tuple['start_sura'],
+                    start_aya=tuple['start_aya'],
+                    count_ayat=verses_count[args.count_method],
+                    separator1_path=args.separator1_path,
+                    separator3_path=args.separator3_path,
+                    matching_threshold=args.matching_threshold,
+                    input_path=input_path,
+                    output_path=output_path,
+                    segments_path=segments_path)
