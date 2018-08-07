@@ -37,6 +37,9 @@ You must mount this as a volume when launching your Docker container.
 
     docker run -it --rm -v ~/Downloads/MHFZ_SOSY:/svg elmohafez/ayah-detection:latest
 
+If you are using Docker for Windows, the mounted path would be something like:
+`C:\Folder\MHFZ_SOSY`.
+
 ### 1. Convert SVG to PNG
 
     ./svg2png.sh 800 10 /svg /svg/output/images
