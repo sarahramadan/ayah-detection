@@ -44,11 +44,22 @@ def main_find_ayat(all_pages_lines, count_ayat, start_page, end_page,
   sura = start_sura
   ayah = start_aya
   default_lines_to_skip = 2
+
+  if start_page < 3:  # default behavior for pages 1 and 2
   lines_to_skip = default_lines_to_skip
+    ayah = 1
+  elif sura == 9 and ayah < 2: # skip only 1 line (header) for tawba
+    lines_to_skip = 1
+    ayah = 1
+  elif ayah < 1: # skip 1 if ayah = 0 (basmalah), skip 2 if ayah = -1 (header)
+    lines_to_skip = 1 - ayah
+    ayah = 1
+  else: # don't skip anything, starting from the middle of a sura
+    lines_to_skip = 0
 
   for i in trange(start_page, end_page + 1):
     filename = str(i) + '.png'
-    lines = all_pages_lines[i - 1]
+    lines = all_pages_lines[i]
 
     img_gray = cv2.imread(input_path + filename, -1)
     if i == 1 or i == 2:
