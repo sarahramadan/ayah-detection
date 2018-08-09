@@ -239,6 +239,26 @@ You also need to copy any changed files from the First Run to
 the original run (the whole SVGs) and repeat all the steps to upload
 a modified archive.
 
+## Comparing 2 different recitations
+
+Sometimes it is faster to do similar recitations in parallel, then
+revise them at the same time. You can use the below script for this purpose.
+It can be also used to compare updated recitations with their original images.
+
+    docker run -it --rm \
+      -v $PWD/output/MHFZ_WRDN/output/ayat:/path1 \
+      -v $PWD/output/MHFZ_GMAZ/output/ayat:/path2 \
+      -v $PWD/output/DIFF_WRDN_GMAZ:/path3 \
+      elmohafez/ayah-detection:latest \
+        ./compare-2-outputs.py \
+          --input_path1 /path1 \
+          --input_path2 /path2 \
+          --output_path /path3
+
+This compares images in input folders `$PWD/output/MHFZ_WRDN/output/ayat`
+and `$PWD/output/MHFZ_GMAZ/output/ayat`. When the script finishes,
+review the images generated in `$PWD/output/DIFF_WRDN_GMAZ`.
+
 ## License
 
 MIT
