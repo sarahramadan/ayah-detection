@@ -55,7 +55,7 @@ def parse_start_tuples(args):
     })
   return total_pages, tuples
 
-def main_find_ayat(progress_bar, all_pages_lines, count_ayat, start_page, end_page,
+def main_find_ayat(progress_bar, all_pages_lines, count_method, start_page, end_page,
                    start_sura, start_aya, separator1_path, separator3_path,
                    matching_threshold, input_path, output_path, segments_path):
   # by default, we don't increase the ayah on the top of this loop
@@ -63,20 +63,25 @@ def main_find_ayat(progress_bar, all_pages_lines, count_ayat, start_page, end_pa
   # override this.
   end_of_ayah = False
   sura = start_sura
-  ayah = start_aya
+  ayah = 1
   default_lines_to_skip = 2
+  count_ayat = verses_count[count_method]
 
-  if start_page < 3:  # default behavior for pages 1 and 2
-    lines_to_skip = default_lines_to_skip
-    ayah = 1
-  elif sura == 9 and ayah < 2: # skip only 1 line (header) for tawba
+  if start_page == 1:  # default behavior for page 1
+    # in kofy/makky basmallah is counted as aya 1
+    if count_method == 'kofy' or count_method == 'makky':
+      lines_to_skip = 1
+    else:
+      lines_to_skip = 2
+  elif start_page == 2: # default behavior for page 2
+    lines_to_skip = 2
+  elif start_sura == 9 and start_aya < 2:  # skip only 1 line (header) for tawba
     lines_to_skip = 1
-    ayah = 1
-  elif ayah < 1: # skip 1 if ayah = 0 (basmalah), skip 2 if ayah = -1 (header)
-    lines_to_skip = 1 - ayah
-    ayah = 1
+  elif start_aya < 1: # skip 1 if ayah = 0 (basmalah), skip 2 if ayah = -1 (header)
+    lines_to_skip = 1 - start_aya
   else: # don't skip anything, starting from the middle of a sura
     lines_to_skip = 0
+    ayah = start_aya
 
   for i in range(start_page, end_page + 1):
     filename = str(i) + '.png'
@@ -120,9 +125,11 @@ def main_find_ayat(progress_bar, all_pages_lines, count_ayat, start_page, end_pa
           cur_line_minx = cur_line[0][0]
           cur_line_maxx = cur_line[1][0]
           if lines_to_skip > 0:
-            if lines_to_skip == 2:  # header
-              vals = (i, line + 1, sura, -1, 1, cur_line_minx, cur_line_maxx, miny, maxy)
-            elif lines_to_skip == 1 and sura == 9:  # header of tawba
+            # it is header if skipping 2 lines (obviously)
+            # or skipping 1 line and we are in sura 9 tawba (no basmala)
+            # or skipping 1 line and we are in sura 1 fatiha and first line
+            #   (some counting methods don't have basmalah, in which case they skip only 1 line)
+            if lines_to_skip == 2 or lines_to_skip == 1 and (sura == 9 or sura == 1 and line == 0):  # header
               vals = (i, line + 1, sura, -1, 1, cur_line_minx, cur_line_maxx, miny, maxy)
             else:  # basmala
               vals = (i, line + 1, sura, 0, 1, cur_line_minx, cur_line_maxx, miny, maxy)
@@ -137,7 +144,9 @@ def main_find_ayat(progress_bar, all_pages_lines, count_ayat, start_page, end_pa
             if x_pos_in_line > 0:
               maxx = x_pos_in_line
             minx = ayah_item[0]
-            if minx < tpl_width/2:  # small value indicating that the separator is the last thing comes in line
+            # small value indicating that the separator is the last thing comes in line
+            # or page 1 and second line (always basmalah), this is to cover basmalah when counted as aya 1
+            if minx < tpl_width/2 or i == 1 and line == 1:
               minx = 0
             end_of_sura = False
             if count_ayat[sura - 1] == ayah:
@@ -193,9 +202,7 @@ def main_find_ayat(progress_bar, all_pages_lines, count_ayat, start_page, end_pa
         end_of_ayah = False
         while line + 1 < num_lines and lines_to_skip > 0:
           line = line + 1
-          if lines_to_skip == 2: # header
-            vals = (i, line + 1, sura, -1, 1, lines[line][0][0], lines[line][1][0], lines[line][0][1], lines[line][1][1])
-          elif lines_to_skip == 1 and sura ==9: # header of tawba
+          if lines_to_skip == 2 or lines_to_skip == 1 and sura == 9:  # header
             vals = (i, line + 1, sura, -1, 1, lines[line][0][0], lines[line][1][0], lines[line][0][1], lines[line][1][1])
           else: # basmala
             vals = (i, line + 1, sura, 0, 1, lines[line][0][0], lines[line][1][0], lines[line][0][1], lines[line][1][1])
@@ -255,7 +262,7 @@ if __name__ == "__main__":
                     end_page=tuple['end_page'],
                     start_sura=tuple['start_sura'],
                     start_aya=tuple['start_aya'],
-                    count_ayat=verses_count[args.count_method],
+                    count_method=args.count_method,
                     separator1_path=args.separator1_path,
                     separator3_path=args.separator3_path,
                     matching_threshold=args.matching_threshold,
