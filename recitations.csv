@@ -1,23 +1,24 @@
-1,1,3,0,0,0,Hafss an Assem,حفص عن عاصم
-2,1,1,1,0,2,Warsh an Nafei,ورش عن نافع
-3,1,1,1,0,0,Qalon an Nafei,قالون عن نافع
-4,1,4,1,0,0,As-Soussey an Abi Amr,السوسي عن أبي عمرو
-5,0,1,0,0,0,Warsh an Nafei men tariq Al-Asbahani,ورش عن نافع من طريق الأصبهاني
-13,1,3,0,0,0,Khalaf an Hamza,خلف عن حمزة
-15,1,3,0,0,0,Abi Al-Harith an Al-Kesa'ey,أبي الحارث عن الكسائي
-16,1,3,0,0,0,Idris Al-Haddad an Khalaf Al-Bazzar,إدريس الحداد عن خلف البزار
-17,1,3,0,0,0,Is-haq Al-Waraq an Khalaf Al-Bazzar,إسحاق الوراق عن خلف البزار
-18,0,7,0,0,0,Ibn Jammaz an Abi Ja'far,ابن جماز عن أبي جعفر
-19,1,2,1,0,0,Al-Bazzey an Ibn Kathir,البزي عن ابن كثير
-20,0,4,0,0,0,Dorey Abi Amr,دوري أبي عمرو
-21,1,3,0,0,0,Ad-Dorey an Al-Kesa'ey,الدوري عن الكسائي
-22,1,3,0,0,0,Khallad an Hamza,خلاد عن حمزة
-23,1,4,0,0,0,Rawh an Ya'qub Al-Hadramey,روح عن يعقوب الحضرمي
-24,1,4,0,0,0,Roys an Ya'qub Al-Hadramey,رويس عن يعقوب الحضرمي
-25,1,3,1,0,1,Sho'ba an Assem,شعبة عن عاصم
-26,1,5,1,0,0,Hisham an Ibn Amer,هشام عن ابن عامر
-27,1,5,1,0,0,Ibn Thakwan an Ibn Amer,ابن ذكوان عن ابن عامر
-28,1,2,1,0,0,Qonbol an Ibn Kathir,قنبل عن ابن كثير
-29,0,7,0,0,0,Ibn Wardan an Abi Ja'far,ابن وردان عن أي جعفر
-36,1,3,0,0,0,Hafss bessakt men tariq Tayebat Annashr,حفص بالسكت من طريق طيبة النشر
-37,1,3,1,0,0,Hafss an Assem (Tajweed),حفص عن عاصم (تجويد)
+id,enabled,origin_id,origin_name,mediatype,dataVersion,dataLatestVersion,en_name,ar_name
+3,1,1,madany1,1,0,0,Qalon an Nafei,قالون عن نافع
+18,0,7,madany1,0,0,0,Ibn Jammaz an Abi Ja'far,ابن جماز عن أبي جعفر
+29,0,7,madany1,0,0,0,Ibn Wardan an Abi Ja'far,ابن وردان عن أبي جعفر
+2,1,1,madany2,1,0,2,Warsh an Nafei,ورش عن نافع
+5,0,1,madany2,0,0,0,Warsh an Nafei men tariq Al-Asbahani,ورش عن نافع من طريق الأصبهاني
+19,1,2,makky,1,0,0,Al-Bazzey an Ibn Kathir,البزي عن ابن كثير
+28,1,2,makky,1,0,0,Qonbol an Ibn Kathir,قنبل عن ابن كثير
+4,1,4,basry,1,0,0,As-Soussey an Abi Amr,السوسي عن أبي عمرو
+20,1,4,basry,1,0,0,Dorey Abi Amr,دوري أبي عمرو
+23,1,4,basry,1,0,0,Rawh an Ya'qub Al-Hadramey,روح عن يعقوب الحضرمي
+24,1,4,basry,1,0,0,Roys an Ya'qub Al-Hadramey,رويس عن يعقوب الحضرمي
+26,1,5,shamy,1,0,0,Hisham an Ibn Amer,هشام عن ابن عامر
+27,1,5,shamy,1,0,0,Ibn Thakwan an Ibn Amer,ابن ذكوان عن ابن عامر
+1,1,3,kofy,0,0,0,Hafss an Assem,حفص عن عاصم
+37,1,3,kofy,1,0,0,Hafss an Assem (Tajweed),حفص عن عاصم (تجويد)
+36,1,3,kofy,0,0,0,Hafss bessakt men tariq Tayebat Annashr,حفص بالسكت من طريق طيبة النشر
+25,1,3,kofy,1,0,1,Sho'ba an Assem,شعبة عن عاصم
+13,1,3,kofy,0,0,0,Khalaf an Hamza,خلف عن حمزة
+22,1,3,kofy,0,0,0,Khallad an Hamza,خلاد عن حمزة
+15,1,3,kofy,0,0,0,Abi Al-Harith Al-Layth an Al-Kesa'ey,أبي الحارث الليث عن الكسائي
+21,1,3,kofy,0,0,0,Ad-Dorey an Al-Kesa'ey,الدوري عن الكسائي
+16,1,3,kofy,0,0,0,Idris Al-Haddad an Khalaf Al-Bazzar,إدريس الحداد عن خلف البزار
+17,1,3,kofy,0,0,0,Is-haq Al-Waraq an Khalaf Al-Bazzar,إسحاق الوراق عن خلف البزار
