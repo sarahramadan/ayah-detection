@@ -51,6 +51,14 @@ def create_db():
       'verseId' INTEGER,
       'data' TEXT);
   ''')
+  cursor.execute('''
+    CREATE TABLE "results" (
+      'pageId' INTEGER,
+      'suraId' INTEGER,
+      'verseId' INTEGER,
+      'lineId' INTEGER,
+      'data' TEXT);
+  ''')
   return conn
 
 
@@ -117,17 +125,37 @@ def encode_data(conn, width, ref_width):
   return encoded_data
 
 
-def export_data_sql(data, recitation_id, file_name):
-  print("Exporting %d records to %s..." % (len(data), file_name))
+def insert_encoded_data(conn, data):
+  cursor = conn.cursor()
+
+  cursor.execute('DELETE FROM results')
+  cursor.executemany('''
+    INSERT INTO results (
+      pageId,
+      lineId,
+      suraId,
+      verseId,
+      data
+    )
+    VALUES (?, ?, ?, ?, ?)
+  ''', data)
+  conn.commit()
+
+
+def export_data_sql(conn, recitation_id, file_name):
+  cursor = conn.cursor()
   with open(file_name, 'wb') as file:
-    for row in data:
+    total = 0
+    for row in cursor.execute('SELECT pageId, lineId, suraId, verseId, data FROM results ORDER BY pageId, lineId, suraId, verseId'):
       file.write(
         "INSERT INTO recitations_data (recitation_id, page_id, line_id, sura_id, verse_id, data) VALUES (%s, %s, %s, %s, %s, '%s')\n" \
           % (recitation_id, row[0], row[1], row[2], row[3], row[4]))
+      total += 1
+    print("Exported %d records to %s" % (total, file_name))
 
 
-def export_data_tsv(data, recitation_id, file_name):
-  print("Exporting %d records to %s..." % (len(data), file_name))
+def export_data_tsv(conn, recitation_id, file_name):
+  cursor = conn.cursor()
   with open(file_name, 'wb') as file:
     writer = csv.writer(file, delimiter='\t', lineterminator='\r',
                             quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -139,7 +167,8 @@ def export_data_tsv(data, recitation_id, file_name):
       'lineId',
       'data'
     ])
-    for row in data:
+    total = 0
+    for row in cursor.execute('SELECT pageId, lineId, suraId, verseId, data FROM results ORDER BY pageId, lineId, suraId, verseId'):
       writer.writerow([
         recitation_id,
         row[0],
@@ -148,6 +177,8 @@ def export_data_tsv(data, recitation_id, file_name):
         row[1],
         row[4]
       ])
+      total += 1
+    print("Exported %d records to %s" % (total, file_name))
 
 
 if __name__ == "__main__":
@@ -161,10 +192,11 @@ if __name__ == "__main__":
   out_dir = safe_makedir(args.output_path)
   for width in [320, 480, 800, 1200, 1500]:
     data = encode_data(conn, width, args.reference_width)
+    insert_encoded_data(conn, data)
     file_name = "%s/%d.sql" % (out_dir, width)
-    export_data_sql(data, args.recitation_id, file_name)
+    export_data_sql(conn, args.recitation_id, file_name)
     if width == 800:
       file_name = "%s/RecitationData%d.tsv" % (out_dir, args.recitation_id)
-      export_data_tsv(data, args.recitation_id, file_name)
+      export_data_tsv(conn, args.recitation_id, file_name)
 
   conn.close()
