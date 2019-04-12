@@ -139,6 +139,7 @@ Where:
   (the same one that you used in step 1)
 * `--recitation_id` is the recitation ID of the segmented data
   (check `recitations.csv` for the complete list)
+* `--update_previous_recitation` should be added if this is an update (see below)
 
 ### 6. Generate archives, ready for the cloud
 
@@ -161,6 +162,7 @@ Where:
 * `/svg/output/images` is the output folder to store resulting images
 * `/svg/output/archives` is the output folder to store resulting archives
 * `4` is the recitation ID
+* `1` should be added if this is an update (see below)
 
 *IMPORTANT*:
 For this script to run, you must supply 2 environment variables for encryption to work.
@@ -183,11 +185,18 @@ to the configured cloud server as is.
 #### 8.1 iOS
 
 * Edit `ElMohafez/sources/recitations.csv` to enable the recitation
-  and to set its mediaType to 1 (images).
+  and to set its `mediaType` to `1` (images). If this is an update, and
+  there is a new archive that should be downloaded, increase the value
+  in column `dataLatestVersion` by `1`.
 * Add `/svg/output/encoded/RecitationData<ID>.tsv` to the project under
-  `ElMohafez/sources/`
-* Add a new dictionary to `ElMohafez/sources/Seed.plist` to refer to the newly
-  added file under the dictionary `RecitationsData`.
+  `ElMohafez/sources/`. If this is an update, replace that file with
+  the new one, if changed.
+* Add a new dictionary to `ElMohafez/sources/Seed.plist` to refer to
+  the newly added file under the dictionary `RecitationsData`. If this
+  is an update with a new `tsv` file, edit the dictionary by renaming
+  the last string from `RecitationData<ID>Seeded` to
+  `RecitationsData<ID>-<UID>Seeded` where `<UID>` is an increment by
+  one for every update (e.g. `1`, `2`, ...)
 * Increase the app bundle version to trigger a CoreData migration.
 
 #### 8.2 Android
@@ -195,8 +204,9 @@ to the configured cloud server as is.
 * Add an SQL script to update rewaya table so that you accomplish the following
   - Enable the new recitation if it was was not (`enabled=1`)
   - Change `mediaType` of the new recantation to image mode (`mediaType=1`)
-  - Increment recitation version if an update is available (`data_latest_version = NEW_VERSION`)
-For example: `UPDATE Rewaya SET enabled = 1, mediaType = 1 WHERE rewayaId = 3`
+  - Increment recitation version if an update is available (`data_latest_version = <NEW_VERSION>`).
+For example: `UPDATE Rewaya SET enabled = 1, mediaType = 1 WHERE rewayaId = 3`.
+Updates: `UPDATE Rewaya SET enabled = 1, mediaType = 1, data_latest_version = 1 WHERE rewayaId = 3`.
 * Save the above script in a file with name `upgrade_script{VERSION}.txt` where `{VERSION}`
   is the database version in new app release.
 * Increment the constant `DATABASE_VERSION` in the class `DataBaseAccess` to be the same as `{VERSION}`.
@@ -213,25 +223,28 @@ TODO
 
 ## Steps for updated recitations
 
-TODO modify scripts to automate this scenario.
-Also do image diff and sql diff to identify changes alone.
+TODO do image diff and sql diff to identify changes alone.
+
+Any updates to a recitation must contain all the previous updates
+happened to the original archive. So if there are 3
+updates to apply, the update archive must contain all the changed pages
+in all the 3 updates.
 
 ### First Run:
 
 You simply mount the new SVG folder with the changed pages only
 and do all the steps as above with a few exceptions:
 
-1. The generated SQLs in step 5 must contain a delete statement
-in the first line to remove the older records in preparation of
-adding the modified records. If no regions were changed, just place
-an empty file in the archive.
+1. Add `--update_previous_recitation` to the `./sqlite_encoder` command.
+This will look for a previously generated `tsv` file in the input path.
+You need to copy it there before running the command. Make sure
+you copy the latest version of this file, either from the original
+recitation, or from the latest update to the recitation.
 
-2. The archive name must be appended with `_patch` and must contain
-all the updates happened to the original archive. So if there are 3
-updates to apply, this archive must contain all the chanaged pages
-in all the 3 updates.
-
-3. TODO Put new instructions for mobile platform specific projects
+2. Add `1` at the end of `./prepare_archives.sh` which denotes that
+a patch archive is needed. The difference is that the final archive
+file name is suffixed with `_patch` and the data file inside is
+named `data_patch.txt` rather than `data.txt`.
 
 ### Second Run:
 

@@ -5,6 +5,8 @@ import base64
 import argparse
 from tempfile import mkstemp
 from glob import glob
+import os
+import filecmp
 import csv
 from tqdm import tqdm
 from utils import safe_makedir
@@ -20,6 +22,8 @@ def parse_arguments():
                         help='''Reference width of which segmented data SQL files were generated''')
     parser.add_argument('--recitation_id', type=int, required=True,
                         help='''Recitation ID of the segmented data''')
+    parser.add_argument('--update_previous_recitation', action='store_true',
+                        help='''If set, will expect a previously generated tsv file in the input_path''')
     return parser.parse_args()
 
 
@@ -125,10 +129,30 @@ def encode_data(conn, width, ref_width):
   return encoded_data
 
 
+def prepare_results(conn, previous_tsv=None, page_ids=[]):
+  cursor = conn.cursor()
+  cursor.execute('DELETE FROM results')
+
+  if previous_tsv:
+    if os.path.isfile(previous_tsv):
+      # open file in universal new line mode: U
+      with open(previous_tsv, 'rU') as csvfile:
+        reader = csv.reader(csvfile, delimiter='\t', quotechar='"')
+        # file format: rewayaId	pageId	suraId	verseId	lineId	data
+        next(reader) # skip header
+        data = [(int(row[1]), int(row[4]), int(row[2]), int(row[3]), row[5]) for row in reader]
+        insert_encoded_data(conn, data)
+        # delete previous pages matching new pages
+        if page_ids:
+          cursor.execute('DELETE FROM results WHERE pageId IN (%s)' %
+                         (','.join(['?'] * len(page_ids))), page_ids)
+    else:
+      raise RuntimeError("Could not find previously generated tsv file at %s" % previous_tsv)
+
+
 def insert_encoded_data(conn, data):
   cursor = conn.cursor()
 
-  cursor.execute('DELETE FROM results')
   cursor.executemany('''
     INSERT INTO results (
       pageId,
@@ -142,10 +166,12 @@ def insert_encoded_data(conn, data):
   conn.commit()
 
 
-def export_data_sql(conn, recitation_id, file_name):
+def export_data_sql(conn, recitation_id, file_name, page_ids=[]):
   cursor = conn.cursor()
   with open(file_name, 'wb') as file:
     total = 0
+    if page_ids:
+      file.write('DELETE FROM recitations_data WHERE page_id IN (%s)\n' % ', '.join(map(str, page_ids)))
     for row in cursor.execute('SELECT pageId, lineId, suraId, verseId, data FROM results ORDER BY pageId, lineId, suraId, verseId'):
       file.write(
         "INSERT INTO recitations_data (recitation_id, page_id, line_id, sura_id, verse_id, data) VALUES (%s, %s, %s, %s, %s, '%s')\n" \
@@ -181,6 +207,14 @@ def export_data_tsv(conn, recitation_id, file_name):
     print("Exported %d records to %s" % (total, file_name))
 
 
+def get_unique_pages(conn):
+  cursor = conn.cursor()
+  return [int(row[0]) for row in cursor.execute('SELECT distinct pageId from glyphs ORDER BY pageId')]
+
+
+def get_tsv_path(base_dir, recitation_id):
+  return "%s/RecitationData%d.tsv" % (base_dir, recitation_id)
+
 if __name__ == "__main__":
   args = parse_arguments()
 
@@ -188,15 +222,29 @@ if __name__ == "__main__":
 
   import_data(conn, args.input_path)
   group_data(conn)
-
+  page_ids = get_unique_pages(conn)
   out_dir = safe_makedir(args.output_path)
-  for width in [320, 480, 800, 1200, 1500]:
-    data = encode_data(conn, width, args.reference_width)
-    insert_encoded_data(conn, data)
-    file_name = "%s/%d.sql" % (out_dir, width)
-    export_data_sql(conn, args.recitation_id, file_name)
-    if width == 800:
-      file_name = "%s/RecitationData%d.tsv" % (out_dir, args.recitation_id)
-      export_data_tsv(conn, args.recitation_id, file_name)
+
+  # tsv
+  previous_tsv = None
+  if args.update_previous_recitation:
+    previous_tsv = get_tsv_path(args.input_path, args.recitation_id)
+  prepare_results(conn, previous_tsv, page_ids)
+  insert_encoded_data(conn, encode_data(conn, 800, args.reference_width))
+  tsv_filename = get_tsv_path(out_dir, args.recitation_id)
+  export_data_tsv(conn, args.recitation_id, tsv_filename)
+
+  if previous_tsv and filecmp.cmp(previous_tsv, tsv_filename):
+    print("No change was detected since the previous recitation, exiting")
+    os.remove(tsv_filename)
+  else:
+    # sql
+    if not args.update_previous_recitation:
+      page_ids = []
+    for width in [320, 480, 800, 1200, 1500]:
+      prepare_results(conn, None, page_ids)
+      insert_encoded_data(conn, encode_data(conn, width, args.reference_width))
+      export_data_sql(conn, args.recitation_id, "%s/%d.sql" %
+                      (out_dir, width), page_ids)
 
   conn.close()
