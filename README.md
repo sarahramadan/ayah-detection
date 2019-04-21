@@ -35,10 +35,25 @@ Locate the SVG folder that contains 604 images in SVG format.
 In the below examples, we assume this is located at `~/Downloads/MHFZ_SOSY`.
 You must mount this as a volume when launching your Docker container.
 
-    docker run -it --rm -v ~/Downloads/MHFZ_SOSY:/svg elmohafez/ayah-detection:latest
+    docker run -it --rm \
+      -v ~/Downloads/MHFZ_SOSY:/svg \
+      --env-file $PWD/.env \
+      elmohafez/ayah-detection:latest
 
 If you are using Docker for Windows, the mounted path would be something like:
 `C:\Folder\MHFZ_SOSY`.
+
+The `.env` file referenced in the `--env-file` above should contain secret variables
+in the following format:
+
+```
+ENCRYPTION_KEY=
+ENCRYPTION_IV=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+```
+
+More details about such variables will come later.
 
 ### 1. Convert SVG to PNG
 
@@ -143,7 +158,7 @@ Where:
 
 ### 6. Generate archives, ready for the cloud
 
-The final step is to generate the archives that will be uploaded to the cloud.
+Now it is time to generate the archives that will be uploaded to the cloud.
 Each archive is a zip file containing encrypted images plus the regions file.
 A separate archive is generated for each screen resolution.
 
@@ -171,14 +186,36 @@ They are namely:
 * `ENCRYPTION_KEY`: Encryption Key
 * `ENCRYPTION_IV`: Initialization Vector
 
-You can pass these 2 from the docker command with the `-e` switch, example:
-
-    docker run -it --rm -e ENCRYPTION_KEY=<KEY> -e ENCRYPTION_IV=<IV> elmohafez/ayah-detection:latest
+These are passed in the `--env-file` parameter above.
 
 ### 7. Upload archives to the cloud
 
-Just upload the generated archives from the previous step
-to the configured cloud server as is.
+The final step is to upload the generated archives to the cloud:
+
+    ./upload_archives.py \
+      --input_path /svg/output/archives \
+      --aws_region_name ams3 \
+      --aws_s3_endpoint_url https://ams3.digitaloceanspaces.com \
+      --aws_s3_public_base_url https://elmohafez-app-data.ams3.digitaloceanspaces.com \
+      --aws_s3_bucket elmohafez-app-data \
+      --aws_s3_object_prefix recitatins/
+
+Where:
+* `--input_path` is the path to input folder containing archives to upload to S3
+* `--aws_region_name` is the AWS region name
+* `--aws_s3_endpoint_url` is the AWS S3 endpoint URL, if different from the default (e.g. DigitalOcean)
+* `--aws_s3_public_base_url` is the public URL prefix to verify uploaded archives
+* `--aws_s3_bucket` is the AWS S3 Bucket
+* `--aws_s3_object_prefix` is the AWS S3 object prefix (parent folder)
+
+*IMPORTANT*:
+For this script to run, you must supply 2 environment variables for authentication.
+They are namely:
+* `AWS_ACCESS_KEY_ID`
+* `AWS_SECRET_ACCESS_KEY`
+
+These are passed in the `--env-file` parameter above.
+
 
 ### 8. Update the mobile apps
 

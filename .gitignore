@@ -3,3 +3,5 @@ images/warsh
 images/shamerly
 images/qaloon
 output
+.env
+*.code-workspace
