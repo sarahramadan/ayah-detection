@@ -171,7 +171,8 @@ def export_data_sql(conn, recitation_id, file_name, page_ids=[]):
   with open(file_name, 'wb') as file:
     total = 0
     if page_ids:
-      file.write('DELETE FROM recitations_data WHERE page_id IN (%s)\n' % ', '.join(map(str, page_ids)))
+      file.write('DELETE FROM recitations_data WHERE recitation_id = %s AND page_id IN (%s)\n' %
+                 (recitation_id, ', '.join(map(str, page_ids))))
     for row in cursor.execute('SELECT pageId, lineId, suraId, verseId, data FROM results ORDER BY pageId, lineId, suraId, verseId'):
       file.write(
         "INSERT INTO recitations_data (recitation_id, page_id, line_id, sura_id, verse_id, data) VALUES (%s, %s, %s, %s, %s, '%s')\n" \
