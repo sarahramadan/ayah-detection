@@ -198,7 +198,7 @@ The final step is to upload the generated archives to the cloud:
       --aws_s3_endpoint_url https://ams3.digitaloceanspaces.com \
       --aws_s3_public_base_url https://elmohafez-app-data.ams3.digitaloceanspaces.com \
       --aws_s3_bucket elmohafez-app-data \
-      --aws_s3_object_prefix recitatins/
+      --aws_s3_object_prefix recitations/
 
 Where:
 * `--input_path` is the path to input folder containing archives to upload to S3
@@ -243,10 +243,11 @@ These are passed in the `--env-file` parameter above.
   - Change `mediaType` of the new recantation to image mode (`mediaType=1`)
   - Increment recitation version if an update is available (`data_latest_version = <NEW_VERSION>`).
 For example: `UPDATE Rewaya SET enabled = 1, mediaType = 1 WHERE rewayaId = 3`.
-Updates: `UPDATE Rewaya SET enabled = 1, mediaType = 1, data_latest_version = 1 WHERE rewayaId = 3`.
-* Save the above script in a file with name `upgrade_script{VERSION}.txt` where `{VERSION}`
+Updates: `UPDATE Rewaya SET data_latest_version = 1 WHERE rewayaId = 3`.
+* Save the above script in a file with name `mohafez/src/main/assets/upgrade_script{VERSION}.txt` where `{VERSION}`
   is the database version in new app release.
-* Increment the constant `DATABASE_VERSION` in the class `DataBaseAccess` to be the same as `{VERSION}`.
+* Increment the constant `DATABASE_VERSION` in the class
+  `mohafez/src/main/java/net/hammady/android/mohafez/databse/DataBaseAccess.java to be the same as `{VERSION}`.
   All new changes should be in one script file suffixed with the version number.
   So, if you have any other changes to database in the same release then it should
   be written in the same file and database version and no need to put a separate file
