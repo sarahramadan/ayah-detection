@@ -36,8 +36,9 @@ In the below examples, we assume this is located at `~/Downloads/MHFZ_SOSY`.
 You must mount this as a volume when launching your Docker container.
 
     docker run -it --rm \
-      -v ~/Downloads/MHFZ_SOSY:/svg \
+      -v $PWD/output/makky/MHFZ_BAZY:/svg \
       --env-file $PWD/.env \
+      -e RECITATION_ID=19 -e COUNT_METHOD=makky \
       elmohafez/ayah-detection:latest
 
 If you are using Docker for Windows, the mounted path would be something like:
@@ -54,6 +55,10 @@ AWS_SECRET_ACCESS_KEY=
 ```
 
 More details about such variables will come later.
+
+Also `RECITATION_ID` and `COUNT_METHOD` variables should
+reflect those of the mounted recitation. A full list
+of recitations can be found in `recitations.csv`.
 
 ### 1. Convert SVG to PNG
 
@@ -99,11 +104,10 @@ any overlap.
       --output_path /svg/output \
       --separator1_path ./separator1.png \
       --separator3_path ./separator3.png \
-      --count_method basry \
+      --count_method $COUNT_METHOD \
       --matching_threshold 0.42 \
       --pages 4,6,8,10..30,500 \
-      --start_sura 2,2,2,2,45 \
-      --start_aya 16,29,48,61,13
+      --start_sura_aya_tsv /svg/RecitationData$RECITATION_ID.tsv
 
 Where:
 * `--input_path` is the path to input folder containing PNG images
@@ -115,9 +119,17 @@ Where:
 * `--pages` is an optional comma seprated page numbers or ranges (default is 1..604)
 * `--start_sura` is an optional start sura numbers for each page in the input pages (default is 1)
 * `--start_aya` is an optional start aya numbers for each page in the input pages (default is 1)
+* `--start_sura_aya_tsv` if specified, reads start_sura and start_aya numbers from recitation tsv
 
-If you want to start from the middle, make sure the first sura and aya in every page are
+In the case of partially updating recitations, you need to specify `--pages` and either `--start_sura_aya_tsv`
+or the pair of `--start_sura` and `--start_aya`. If you choose the latter, make sure the first sura and aya in every page are
 specified correctly in `--start_sura` and `--start_aya` in the same order.
+If you choose the former, make sure you have manually copied a previously generated `RecitationData<id>.tsv` in the specified path.
+
+To get the list of pages to fill in the `--pages` parameter, just type this command:
+```
+ls -1 /svg/*.svg | while read l; do basename $l .svg; done | xargs | tr ' ' ','
+```
 
 *IMPORTANT*:
 Manually verify all the generated images under `--output_path/ayat`
@@ -145,7 +157,8 @@ with Android, iOS and Windows.
       --input_path /svg/output/segments \
       --output_path /svg/output/encoded \
       --reference_width 800 \
-      --recitation_id 4
+      --recitation_id $RECITATION_ID \
+      --update_previous_recitation
 
 Where:
 * `--input_path` is the path to input folder containing segmented data SQL files to import
@@ -168,7 +181,7 @@ A separate archive is generated for each screen resolution.
       /svg/output/encoded \
       /svg/output/images \
       /svg/output/archives \
-      4
+      $RECITATION_ID 1
 
 Where:
 * `10` is the padding to add to images (same as you used in step 1)
@@ -176,8 +189,8 @@ Where:
 * `/svg/output/encoded` is the input folder containing generated region files from the previous step
 * `/svg/output/images` is the output folder to store resulting images
 * `/svg/output/archives` is the output folder to store resulting archives
-* `4` is the recitation ID
-* `1` should be added if this is an update (see below)
+* `$RECITATION_ID` is the recitation ID
+* `1` should be only added if this is an update (see below)
 
 *IMPORTANT*:
 For this script to run, you must supply 2 environment variables for encryption to work.

@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 import os
 import argparse
+import csv
 import cv2
 from PIL import Image
 from tqdm import tqdm
@@ -27,16 +28,54 @@ def parse_arguments():
                         help='''Start sura numbers for each page in the input pages, default = 1''')
     parser.add_argument('--start_aya', type=str, default='1',
                         help='''Start aya numbers for each page in the input pages, default = 1''')
+    parser.add_argument('--start_sura_aya_tsv', type=str,
+                        help='''If specified, reads start_sura and start_aya numbers from recitation tsv''')
     parser.add_argument('--matching_threshold', type=float, default=0.42,
                         help='''Matching threshold to match aya separators, default = 0.42''')
     return parser.parse_args()
 
 
 def parse_start_tuples(args):
+  if args.start_sura_aya_tsv:
+    return read_start_tuples_tsv(args.pages, args.start_sura_aya_tsv)
+  else:
+    return read_start_tuple_args(args.pages, args.start_sura, args.start_aya)
+
+
+def read_start_tuples_tsv(pages, tsv):
+  # read tsv and return tuples (page, sura, ayah) for lines with lineId == 1
+  if not os.path.isfile(tsv):
+    raise RuntimeError("File: '%s' not found" % tsv)
+
+  # open file in universal new line mode: U
+  with open(tsv, 'rU') as csvfile:
+    reader = csv.reader(csvfile, delimiter='\t', quotechar='"')
+    # file format: rewayaId	pageId	suraId	verseId	lineId	data
+    pages_dict = {}
+    for row in reader:
+      if row[4] == '1' and pages_dict.get(int(row[1])) == None:
+        pages_dict[int(row[1])] = (int(row[2]), int(row[3]))
+
   tuples = []
-  pages = args.pages.split(',')
-  suras = args.start_sura.split(',')
-  ayahs = args.start_aya.split(',')
+  total_pages = 0
+  for page in pages.split(','):
+    page_range = page.split('..')
+    start_page = int(page_range[0])
+    end_page = int(page_range[-1])
+    total_pages += end_page - start_page + 1
+    tuples.append({
+        'start_page': start_page,
+        'end_page': end_page,
+        'start_sura': pages_dict[start_page][0],
+        'start_aya': pages_dict[start_page][1]
+    })
+  return total_pages, tuples
+
+def read_start_tuple_args(pages, start_sura, start_aya):
+  tuples = []
+  pages = pages.split(',')
+  suras = start_sura.split(',')
+  ayahs = start_aya.split(',')
   total_pages = 0
 
   if not (len(pages) == len(suras) == len(ayahs)):
